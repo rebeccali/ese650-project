@@ -1,7 +1,7 @@
 somehow lost old notes. sad :(
 
 ### simplequad Environment
-* [ ] subclass of gym.Env
+* [x] subclass of gym.Env
 * [ ] has an __init__ that initializes env. variables
     * [ ] initializes action_space and observation_space as gym.spaces
     * [ ] seeds the system randomly (necessary?)
