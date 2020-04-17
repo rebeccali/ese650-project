@@ -13,6 +13,8 @@ class SimpleQuadEnv(gym.Env):
         self.J = params.J #moment of inertia
         self.L = params.L #length (m) from COM to thrust point of action
         self.m = params.m
+        self.Q_r_ddp = params.Q_r_ddp
+        self.R_ddp = params.R_ddp
         
         self.state_limits = np.ones((12,),dtype=np.float32)*10000 #initialize really large (no limits) for now
         
@@ -22,6 +24,9 @@ class SimpleQuadEnv(gym.Env):
         #initialize state to zero
         self.state = np.zeros((12,))
         #state: x,y,z, dx,dy,dz, r,p,y, dr,dp,dy
+        
+        self.goal = np.zeros((12,))#TODO need to initialize this - maybe with 
+        # initialization of the environment itself? Or maybe a separate function?
         
         
         
@@ -82,11 +87,17 @@ class SimpleQuadEnv(gym.Env):
         
         self.state = new_state
         
-        reward = self.get_ddp_reward()
+        reward = self.get_ddp_reward(u)
         return self.state, reward
         
-    def get_ddp_reward(self):
-        #TODO
-        return 0
+    def get_ddp_reward(self, u):
+        Q = self.Q_r_ddp
+        R = self.R_ddp
+        
+        delta_x = self.state - self.goal
+        
+        cost = 0.5*np.matmul(delta_x.T, np.matmul(Q,delta_x)) + 0.5*np.matmul(u.T, np.matmul(R,u))
+        
+        return -cost
     
         

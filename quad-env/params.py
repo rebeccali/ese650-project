@@ -11,3 +11,6 @@ states      = 12             # number of states
 total_time  = 1.5            # total time duration (s)
 dt          = 0.01           # discretization timestep
 timesteps   = total_time/dt  # total timesteps 
+Q_r_ddp = np.diag([0.1,0.1,0.1,0.1,0.1,0.1,10,10,10,0.1,0.1,0.1])
+Q_f_ddp = np.diag([100,100,100,10,10,10,50,50,5,5,5,5])
+R_ddp = 0.001*np.eye(4)
