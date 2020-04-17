@@ -61,6 +61,32 @@ class SimpleQuadEnv(gym.Env):
         
         state_dot = np.zeros((12,))
         
+        # translational ------------------------------------------------------
         state_dot[0:3] = [x_dot,y_dot,z_dot]
+        # position second derivative
+        state_dot[3] = 1/self.m*(np.cos(phi)*np.sin(theta)*np.cos(psi) + np.sin(phi)*np.sin(psi))*u1
+        state_dot[4] = 1/self.m*(np.cos(phi)*np.sin(theta)*np.sin(psi) - np.sin(phi)*np.cos(psi))*u1
+        state_dot[5] = self.g - 1/self.m*(np.cos(phi)*np.cos(theta))*u1
         
+        
+        # rotational    ------------------------------------------------------
+        state_dot[6:9] = [phi_dot,theta_dot,psi_dot]
+        # angle second derivative
+        state_dot[9] = 1/Jx*(theta_dot*psi_dot*(Jy - Jz) + self.L*u2)
+        state_dot[10] = 1/Jy*(phi_dot*psi_dot*(Jz - Jx) + self.L*u3)
+        state_dot[11] = 1/Jz*(phi_dot*theta_dot*(Jx - Jy) + u4)
+        
+        
+        #propogate state forward using state_dot
+        new_state = self.state + self.dt*state_dot
+        
+        self.state = new_state
+        
+        reward = self.get_ddp_reward()
+        return self.state, reward
+        
+    def get_ddp_reward(self):
+        #TODO
+        return 0
+    
         
