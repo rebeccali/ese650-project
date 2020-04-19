@@ -100,6 +100,11 @@ class SimpleQuadEnv(gym.Env):
         
         return -cost
     
+    def set_goal(self,goal):
+        # takes a size (12,) numpy array representing the goal state against which rewards should be measured
+        # stores the goal state in the environment class variables
+        self.goal = goal
+    
     def plot(self, state_history, control_history):
         #this should definitely be replaced by an actual render function in line with the "viewer" stuff that 
         #gym provides. For now, just take in state history and control history, graph x,y,z,u. State history should be
