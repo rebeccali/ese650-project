@@ -100,4 +100,26 @@ class SimpleQuadEnv(gym.Env):
         
         return -cost
     
+    def plot(self, state_history, control_history):
+        #this should definitely be replaced by an actual render function in line with the "viewer" stuff that 
+        #gym provides. For now, just take in state history and control history, graph x,y,z,u. State history should be
+        #12xtsteps numpy array, this just plots the first 3 rows
+    
+        dt = self.dt
+        t = np.arange(0,control_history.size*dt,dt)
+        
+        ax1 = plt.subplot(411)
+        ax1.plot(t,state_history[0,:])
+        
+        ax2 = plt.subplot(412)
+        ax2.plot(t,state_history[1,:])
+        
+        ax3 = plt.subplot(413)
+        ax3.plot(t,state_history[2,:])
+        
+        ax4 = plt.subplot(414)
+        ax4.plot(t,control_history)
+
+        plt.show()
+                
         
