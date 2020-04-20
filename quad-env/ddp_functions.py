@@ -118,6 +118,10 @@ def state_control_transition(sys, x, u):
 
 
 def state_action(L,Lx,Lu,Lxx,Luu,Lux,Lxu,V,Vx,Vxx,phi,B):
+
+    """ takes in the value function, loss and the gradients and Hessians and evaluates
+    the state action value function """
+
     Q = L + V
     Qx = Lx + phi.T.dot(Vx)
     Qu = Lu + B.T.dot(Vx)
@@ -159,7 +163,6 @@ def ddp(sys, x, u):
 
     for t in range(timesteps-1):
 
-        # get running cost gradients and hessians
         l0, lx, lxx, lu, luu, lux = running_cost(sys, x[:, t], u[:, t])
 
         q0[t] = dt * l0
@@ -169,7 +172,6 @@ def ddp(sys, x, u):
         Rk[:, :, t] = dt * luu
         Pk[:, :, t] = dt * lux
 
-        # linearize dynamics
         dfx, dfu = state_control_transition(sys, x[:, t], u[:, t])
 
         A[:, :, t] = np.eye(states, states) + dfx * dt
@@ -180,8 +182,23 @@ def ddp(sys, x, u):
     Vx[:, Vx.shape[1]] = Qf.dot(x[:, x.shape[1]] - xf)
     Vxx[:, :, Vxx.shape[2]] = Qf
 
+    Lk = np.zeros([controllers, states, timesteps-1])
+    lk = np.zeros([controllers, timesteps-1])
+
     for t in range((timesteps-1), -1, -1):
-        # get state action value function to evalueate the linearized bellman equation
+
+        # get state action value function to evaluate the linearized bellman equation
+        Q, Qx, Qu, Qxx, Quu, Qxu = state_action(q0[t], qk[:, t], rk[:, t], Qk[:, :, t],Rk[:, :, t], Pk[:, :, t],
+                                        Pk[:, :, t].T, V[t + 1], V[:, t + 1], Vxx[:, :, t+1], A[:, :, t], B[:, :, t])
+
+        Lk[:, :, t] = -Quu.dot(np.linalg.inv(Qxu.T))
+        lk[:, t] = -Quu.dot(np.linalg.inv(Qu))
+
+        V[t] = Q + Qu.T.dot(lk[:, t]) + 1/2*lk[:, t].dot(Quu).dot(lk[:, t])
+        Vx[:, t] = Qx + Lk[:, :, t].T.dot(Qu) + Qxu.dot(lk[:, t]) + Lk[:, :, t].T.dot(Quu).dot(lk[:, t])
+        Vxx[:, :, t] = Qxx + 2*Lk[:, :, t].T * Qxu.T + Lk[:, :, t].T.dot(Quu).dot(Lk[:, :, t])
+
+
 
 
 
