@@ -1,5 +1,6 @@
 import numpy as np
 
+# quad model parameters
 m           = 1              # mass of quadrotor (kg)
 L           = 0.25           # length from center of mass to point of thrust (meters)
 J           = np.zeros((3,3))# moments of inertia in (kg*m^2)
@@ -10,7 +11,15 @@ gr          = 9.81           # gravity (m/s^2)
 states      = 12             # number of states
 total_time  = 1.5            # total time duration (s)
 dt          = 0.01           # discretization timestep
-timesteps   = total_time/dt  # total timesteps 
+timesteps   = int(total_time/dt)  # total timesteps
+
+
+
+# ddp parameters
+num_iter = 200      # optimization iterations
+num_controllers = 4
+
 Q_r_ddp = np.diag([0.1,0.1,0.1,0.1,0.1,0.1,10,10,10,0.1,0.1,0.1])
 Q_f_ddp = np.diag([100,100,100,10,10,10,50,50,5,5,5,5])
 R_ddp = 0.001*np.eye(4)
+gamma = 0.3
