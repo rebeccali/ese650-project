@@ -142,7 +142,7 @@ def ddp(sys, x, u):
     xf = sys.goal
 
     Qf = params.Q_f_ddp
-    gamma = params.gamma
+    R = params.R_ddp
 
     q0 = np.zeros([1, timesteps-1])
     qk = np.zeros([states, timesteps-1])
@@ -198,17 +198,15 @@ def ddp(sys, x, u):
         Vx[:, t] = Qx + Lk[:, :, t].T.dot(Qu) + Qxu.dot(lk[:, t]) + Lk[:, :, t].T.dot(Quu).dot(lk[:, t])
         Vxx[:, :, t] = Qxx + 2*Lk[:, :, t].T * Qxu.T + Lk[:, :, t].T.dot(Quu).dot(Lk[:, :, t])
 
+    dx = np.zeros([states, 1])
+    for t in range(timesteps-1):
+        gamma = params.gamma
 
+        du = lk[:, t] + Lk[:, :, t].dot(dx)
+        dx = A[:, :, t].dot(dx) + B[:, :, t].dot(du)
+        u_new[:, t] = u[:, t] + gamma*du
 
-
-
-
-
-    pdb.set_trace()
-
-
-
-
+    u_opt = u_new
 
     return u_opt
 
