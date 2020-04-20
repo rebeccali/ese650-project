@@ -31,7 +31,7 @@ def running_cost(sys, x, u):
     return l0, lx, lxx, lu, luu, lux
 
 def state_control_transition(sys, x, u):
-
+    """ takes in state and control trajectories and outputs the Jacobians for the linearized system """
     m = params.m
     L = params.L
     J = params.J
@@ -117,6 +117,16 @@ def state_control_transition(sys, x, u):
     return A, B
 
 
+def state_action(L,Lx,Lu,Lxx,Luu,Lux,Lxu,V,Vx,Vxx,phi,B):
+    Q = L + V
+    Qx = Lx + phi.T.dot(Vx)
+    Qu = Lu + B.T.dot(Vx)
+    Qxx = Lxx + phi.T.dot(Vxx).dot(phi)
+    Quu = Luu + B.T.dot(Vxx).dot(B)
+    Qxu = Lxu + phi.T.dot(Vxx).dot(B)
+
+    return Q, Qx, Qu, Qxx, Quu, Qxu
+
 def ddp(sys, x, u):
     """ takes in the current state and control trajectories and outputs optimal control trajectory """
 
@@ -172,6 +182,8 @@ def ddp(sys, x, u):
 
     for t in range((timesteps-1), -1, -1):
         # get state action value function to evalueate the linearized bellman equation
+
+
 
 
 
