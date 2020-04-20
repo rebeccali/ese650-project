@@ -210,13 +210,30 @@ def ddp(sys, x, u):
 
     return u_opt
 
+def apply_control(sys, u_opt):
+    """ propagate the system one step forward with the evaluated optimal control trajectory"""
 
-def apply_control(u_opt):
+    timesteps = params.timesteps
+    states = params.states
+
+    x_new = np.zeros([states, timesteps])
+    x_new[:, 0] = sys.state
+    cost = 0
+
+
+    for t in range(timesteps - 1):
+
+        u = u_opt[:, t]
+
+        # returns next state and the reward of that state
+        x1, c1 = sys.step(u)
+
+        x_new = x1
+        cost += c1
 
 
 
-
-    return x_new
+    return x_new, cost
 
 
 

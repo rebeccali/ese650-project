@@ -36,6 +36,7 @@ class SimpleQuadEnv(gym.Env):
         return self.state
     
     def step(self, u):
+
         assert self.action_space.contains(u)
         
         state = self.state
