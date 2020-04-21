@@ -16,10 +16,7 @@ if __name__ == "__main__":
     du = np.zeros([params.num_controllers, params.timesteps-1])
     x = np.zeros([params.states, params.timesteps])
     costvec = []
-<<<<<<< HEAD
 
-=======
->>>>>>> harleen
 
     # loop for ddp optimization
     for i in range(num_iter):
@@ -31,7 +28,6 @@ if __name__ == "__main__":
         # update trajectories
         x = x_new
         u = u_opt
-<<<<<<< HEAD
 
         costvec.append(cost)
 
@@ -40,14 +36,11 @@ if __name__ == "__main__":
 
         pdb.set_trace()
 
-=======
-
         costvec.append(cost)
 
         # reset the system so that the next optimization step starts from the correct initial state
         quad.reset()
         
->>>>>>> harleen
         print('iteration: ', i, "cost: ", cost)
 
     pdb.set_trace()
