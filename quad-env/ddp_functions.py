@@ -30,7 +30,9 @@ def running_cost(sys, x, u):
 
 
 def state_control_transition(sys, x, u):
-    """ takes in state and control trajectories and outputs the Jacobians for the linearized system """
+    """ takes in state and control trajectories and outputs the Jacobians for the linearized system
+    edit function to use with autograd when linearizing the neural network output REBECCA """
+
     m = params.m
     L = params.L
     J = params.J
