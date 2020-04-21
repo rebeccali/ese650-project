@@ -4,7 +4,6 @@ import pdb
 
 
 def running_cost(sys, x, u):
-
     """
     :param sys: system from gym environment this stores the
     :param x: state trajectory
@@ -19,7 +18,6 @@ def running_cost(sys, x, u):
     R = params.R_ddp
     Qr = params.Q_r_ddp
 
-
     err = x - xf
     l0 = 0.5 * err.T.dot(Qr).dot(err) + 0.5 * u.T.dot(R).dot(u)
     lx = Qr.dot(err)
@@ -29,6 +27,7 @@ def running_cost(sys, x, u):
     lux = np.zeros([controllers, states])
 
     return l0, lx, lxx, lu, luu, lux
+
 
 def state_control_transition(sys, x, u):
     """ takes in state and control trajectories and outputs the Jacobians for the linearized system """
@@ -43,8 +42,7 @@ def state_control_transition(sys, x, u):
     controllers = params.num_controllers
 
     A = np.zeros([states, states])
-    B = np.zeros([controllers, controllers])
-
+    B = np.zeros([states, controllers])
 
     phi = x[6]
     theta = x[7]
@@ -59,9 +57,9 @@ def state_control_transition(sys, x, u):
     f4 = u[3]
 
     u1 = f1 + f2 + f3 + f4  # total force
-    u2 = f4 - f2            # roll actuation
-    u3 = f1 - f3            # pitch actuation
-    u4 = 0.05 * (f2 + f4 -f1 - f3) # yaw moment
+    u2 = f4 - f2  # roll actuation
+    u3 = f1 - f3  # pitch actuation
+    u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment
 
     A[0, 3] = 1
     A[1, 4] = 1
@@ -103,11 +101,11 @@ def state_control_transition(sys, x, u):
     B[5, 2] = -(np.cos(phi) * np.cos(theta)) / m
     B[5, 3] = -(np.cos(phi) * np.cos(theta)) / m
 
-    B[9, 1] = -L/Jx
-    B[9, 3] = L/Jx
+    B[9, 1] = -L / Jx
+    B[9, 3] = L / Jx
 
-    B[10, 0] = L/Jy
-    B[10, 2] = -L/Jy
+    B[10, 0] = L / Jy
+    B[10, 2] = -L / Jy
 
     B[11, 0] = -1 / (20 * Jz)
     B[11, 1] = 1 / (20 * Jz)
@@ -117,8 +115,7 @@ def state_control_transition(sys, x, u):
     return A, B
 
 
-def state_action(L,Lx,Lu,Lxx,Luu,Lux,Lxu,V,Vx,Vxx,phi,B):
-
+def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
     """ takes in the value function, loss and the gradients and Hessians and evaluates
     the state action value function """
 
@@ -130,6 +127,7 @@ def state_action(L,Lx,Lu,Lxx,Luu,Lux,Lxu,V,Vx,Vxx,phi,B):
     Qxu = Lxu + phi.T.dot(Vxx).dot(B)
 
     return Q, Qx, Qu, Qxx, Quu, Qxu
+
 
 def ddp(sys, x, u):
     """ takes in the current state and control trajectories and outputs optimal control trajectory """
@@ -144,28 +142,27 @@ def ddp(sys, x, u):
     Qf = params.Q_f_ddp
     R = params.R_ddp
 
-    q0 = np.zeros([1, timesteps-1])
-    qk = np.zeros([states, timesteps-1])
-    Qk = np.zeros([states, states, timesteps-1])
+    q0 = np.zeros([1, timesteps - 1])
+    qk = np.zeros([states, timesteps - 1])
+    Qk = np.zeros([states, states, timesteps - 1])
 
-    rk = np.zeros([controllers, timesteps-1])
-    Rk = np.zeros([controllers, controllers, timesteps-1])
-    Pk = np.zeros([controllers, states, timesteps-1])
+    rk = np.zeros([controllers, timesteps - 1])
+    Rk = np.zeros([controllers, controllers, timesteps - 1])
+    Pk = np.zeros([controllers, states, timesteps - 1])
 
-    A = np.zeros([states, states, timesteps-1])
-    B = np.zeros([states, controllers, timesteps-1])
+    A = np.zeros([states, states, timesteps - 1])
+    B = np.zeros([states, controllers, timesteps - 1])
 
     V = np.zeros([1, timesteps])
     Vx = np.zeros([states, timesteps])
     Vxx = np.zeros([states, states, timesteps])
 
-    u_new = np.zeros([controllers, timesteps-1])
+    u_new = np.zeros([controllers, timesteps - 1])
 
-    for t in range(timesteps-1):
-
+    for t in range(timesteps - 1):
         l0, lx, lxx, lu, luu, lux = running_cost(sys, x[:, t], u[:, t])
 
-        q0[t] = dt * l0
+        q0[:, t] = dt * l0
         qk[:, t] = dt * lx
         Qk[:, :, t] = dt * lxx
         rk[:, t] = dt * lu
@@ -178,46 +175,64 @@ def ddp(sys, x, u):
         B[:, :, t] = dfu * dt
 
     # back prop for value function
-    V[V.shape[1]] = 0.5 * (x[:, x.shape[1]] - xf).T.dot(Qf).dot(x[:, x.shape[1]] - xf)
-    Vx[:, Vx.shape[1]] = Qf.dot(x[:, x.shape[1]] - xf)
-    Vxx[:, :, Vxx.shape[2]] = Qf
+    last_index = int(V.shape[1] - 1)
 
-    Lk = np.zeros([controllers, states, timesteps-1])
-    lk = np.zeros([controllers, timesteps-1])
+    V[:, last_index] = 0.5 * (x[:, last_index] - xf).T.dot(Qf).dot(x[:, last_index] - xf)
+    Vx[:, last_index] = Qf.dot(x[:, last_index] - xf)
+    Vxx[:, :, last_index] = Qf
 
-    for t in range((timesteps-1), -1, -1):
+    Lk = np.zeros([controllers, states, timesteps - 1])
+    lk = np.zeros([controllers, timesteps - 1])
 
+    for t in range((timesteps - 2), -1, -1):
         # get state action value function to evaluate the linearized bellman equation
-        Q, Qx, Qu, Qxx, Quu, Qxu = state_action(q0[t], qk[:, t], rk[:, t], Qk[:, :, t],Rk[:, :, t], Pk[:, :, t],
-                                        Pk[:, :, t].T, V[t + 1], V[:, t + 1], Vxx[:, :, t+1], A[:, :, t], B[:, :, t])
 
-        Lk[:, :, t] = -Quu.dot(np.linalg.inv(Qxu.T))
-        lk[:, t] = -Quu.dot(np.linalg.inv(Qu))
+        Q, Qx, Qu, Qxx, Quu, Qxu = state_action(q0[:, t], qk[:, t], rk[:, t], Qk[:, :, t], Rk[:, :, t],
+                                                Pk[:, :, t].T, V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1], A[:, :, t],
+                                                B[:, :, t])
 
-        V[t] = Q + Qu.T.dot(lk[:, t]) + 1/2*lk[:, t].dot(Quu).dot(lk[:, t])
+        Lk[:, :, t] = np.linalg.solve(-Quu, Qxu.T)
+        lk[:, t] = np.linalg.solve(-Quu, Qu)
+
+        V[:, t] = Q + Qu.T.dot(lk[:, t]) + 1 / 2 * lk[:, t].dot(Quu).dot(lk[:, t])
         Vx[:, t] = Qx + Lk[:, :, t].T.dot(Qu) + Qxu.dot(lk[:, t]) + Lk[:, :, t].T.dot(Quu).dot(lk[:, t])
-        Vxx[:, :, t] = Qxx + 2*Lk[:, :, t].T * Qxu.T + Lk[:, :, t].T.dot(Quu).dot(Lk[:, :, t])
+        Vxx[:, :, t] = Qxx + 2 * Lk[:, :, t].T.dot(Qxu.T) + Lk[:, :, t].T.dot(Quu).dot(Lk[:, :, t])
 
     dx = np.zeros([states, 1])
-    for t in range(timesteps-1):
+
+    for t in range(timesteps - 1):
+
         gamma = params.gamma
 
-        du = lk[:, t] + Lk[:, :, t].dot(dx)
-        dx = A[:, :, t].dot(dx) + B[:, :, t].dot(du)
-        u_new[:, t] = u[:, t] + gamma*du
+        du = lk[:, t] + np.squeeze(Lk[:, :, t].dot(dx))
+        dx = np.squeeze(A[:, :, t].dot(dx)) + B[:, :, t].dot(du)
+
+        u_new[:, t] = u[:, t] + gamma * du
 
     u_opt = u_new
 
     return u_opt
 
 
-def apply_control(u_opt):
+def apply_control(sys, u_opt):
+    """ evaluates the controlled system trajectory """
 
+    timesteps = params.timesteps
+    states = params.states
 
+    x_new = np.zeros([states, timesteps])
+    x_new[:, 0] = sys.state
+    cost = 0
 
+    for t in range(timesteps - 1):
+        u = u_opt[:, t]
 
-    return x_new
+        pdb.set_trace()
 
+        # returns next state and the reward of that state
+        x1, c1 = sys.step(u)
 
+        x_new[:, t] = x1
+        cost += c1
 
-
+    return x_new, cost
