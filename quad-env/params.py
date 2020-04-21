@@ -14,7 +14,6 @@ dt          = 0.01           # discretization timestep
 timesteps   = int(total_time/dt)  # total timesteps
 
 
-
 # ddp parameters
 num_iter = 200      # optimization iterations
 num_controllers = 4

@@ -3,6 +3,7 @@ from gym import spaces
 import numpy as np
 import matplotlib.pyplot as plt
 import params
+import pdb
 
 class SimpleQuadEnv(gym.Env):
 
@@ -18,7 +19,7 @@ class SimpleQuadEnv(gym.Env):
         self.state_limits = np.ones((12,),dtype=np.float32)*10000 #initialize really large (no limits) for now
         
         self.observation_space = spaces.Box(self.state_limits*-1,self.state_limits)
-        self.action_space = spaces.Box(-100, 100, (4,)) #all 4 motors can be actuated 0 to 1
+        self.action_space = spaces.Box(-10000, 10000, (4,)) #all 4 motors can be actuated 0 to 1
         
         #initialize state to zero
         self.state = np.zeros((12,))
@@ -97,13 +98,13 @@ class SimpleQuadEnv(gym.Env):
         Q = self.Q_r_ddp
         R = self.R_ddp
         
-        delta_x = self.state - self.goal
+        delta_x = self.state - np.squeeze(self.goal)
         
-        cost = 0.5*np.matmul(delta_x.T, np.matmul(Q,delta_x)) + 0.5*np.matmul(u.T, np.matmul(R,u))
-        
+        cost = 0.5*np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5*np.matmul(u.T, np.matmul(R,u))
+
         return -cost
     
-    def set_goal(self,goal):
+    def set_goal(self, goal):
         # takes a size (12,) numpy array representing the goal state against which rewards should be measured
         # stores the goal state in the environment class variables
         self.goal = goal

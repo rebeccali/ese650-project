@@ -10,8 +10,7 @@ def running_cost(sys, x, u):
     :param u: control trajectory
     :return: gradients and Hessians of the loss function with respect to states and controls
     """
-
-    xf = sys.goal
+    xf = np.squeeze(sys.goal)
 
     states = params.states
     controllers = params.num_controllers
@@ -19,6 +18,7 @@ def running_cost(sys, x, u):
     Qr = params.Q_r_ddp
 
     err = x - xf
+
     l0 = 0.5 * err.T.dot(Qr).dot(err) + 0.5 * u.T.dot(R).dot(u)
     lx = Qr.dot(err)
     lxx = Qr
@@ -139,7 +139,7 @@ def ddp(sys, x, u):
     timesteps = params.timesteps
     dt = params.dt
 
-    xf = sys.goal
+    xf = np.squeeze(sys.goal)
 
     Qf = params.Q_f_ddp
     R = params.R_ddp
