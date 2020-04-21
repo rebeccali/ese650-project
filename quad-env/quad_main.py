@@ -10,13 +10,11 @@ if __name__ == "__main__":
 
     quad = SimpleQuadEnv()
 
-
     num_iter = params.num_iter
     u = np.zeros([params.num_controllers, params.timesteps-1])
     du = np.zeros([params.num_controllers, params.timesteps-1])
     x = np.zeros([params.states, params.timesteps])
     costvec = []
-
 
     # loop for ddp optimization
     for i in range(num_iter):
@@ -33,8 +31,6 @@ if __name__ == "__main__":
 
         # reset the system so that the next optimization step starts from the correct initial state
         quad.reset()
-
-        pdb.set_trace()
 
         print('iteration: ', i, "cost: ", cost)
 
