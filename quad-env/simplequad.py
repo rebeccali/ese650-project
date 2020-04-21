@@ -27,7 +27,7 @@ class SimpleQuadEnv(gym.Env):
         
         self.goal = np.zeros((12,))#TODO need to initialize this - maybe with 
         # initialization of the environment itself? Or maybe a separate function?
-        
+
         
         
     def reset(self, reset_state=None):
@@ -39,6 +39,7 @@ class SimpleQuadEnv(gym.Env):
         return self.state
     
     def step(self, u):
+
         assert self.action_space.contains(u)
         
         state = self.state
