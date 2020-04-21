@@ -30,9 +30,12 @@ class SimpleQuadEnv(gym.Env):
         
         
         
-    def reset(self):
+    def reset(self, reset_state=None):
         #TODO: make this choose random values centered around hover
-        self.state = np.zeros((12,))
+        if reset_state is None:
+            self.state = np.zeros((12,))
+        else:
+            self.state = reset_state    
         return self.state
     
     def step(self, u):
