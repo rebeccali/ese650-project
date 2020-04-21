@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+*.tar
+*.pkl
+.vscode/
+scratch.py
+.ipynb_checkpoints/
+*.json
+*.mp4
+*.idea/
