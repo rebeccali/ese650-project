@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
         # reset the system so that the next optimization step starts from the correct initial state
         quad.reset()
-
+        
         print('iteration: ', i, "cost: ", cost)
 
     pdb.set_trace()
