@@ -5,8 +5,7 @@ import matplotlib.pyplot as plt
 import params
 
 class SimpleQuadEnv(gym.Env):
-    
-    
+
     def __init__(self):
         self.dt = params.dt
         self.g = params.gr #gravity
