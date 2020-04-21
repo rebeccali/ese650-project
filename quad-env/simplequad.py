@@ -28,8 +28,6 @@ class SimpleQuadEnv(gym.Env):
         self.goal = np.zeros((12,))#TODO need to initialize this - maybe with 
         # initialization of the environment itself? Or maybe a separate function?
         
-        
-        
     def reset(self):
         #TODO: make this choose random values centered around hover
         self.state = np.zeros((12,))

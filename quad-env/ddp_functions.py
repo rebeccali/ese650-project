@@ -227,8 +227,6 @@ def apply_control(sys, u_opt):
     for t in range(timesteps - 1):
         u = u_opt[:, t]
 
-        pdb.set_trace()
-
         # returns next state and the reward of that state
         x1, c1 = sys.step(u)
 
