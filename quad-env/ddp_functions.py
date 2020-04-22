@@ -9,6 +9,7 @@ def running_cost(sys, x, u):
     :param x: state trajectory
     :param u: control trajectory
     :return: gradients and Hessians of the loss function with respect to states and controls
+
     """
     xf = np.squeeze(sys.goal)
 
@@ -73,10 +74,11 @@ def state_control_transition(sys, x, u):
     A[3, 6] = (u1 * (np.cos(phi) * np.sin(psi) - np.cos(psi) * np.sin(phi) * np.sin(theta))) / m
     A[3, 7] = (u1 * np.cos(phi) * np.cos(psi) * np.cos(theta)) / m
     A[3, 8] = (u1 * (np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta))) / m
-    A[4, 6] = -(u1 * (np.cos(phi) * np.cos(psi) + np.sin(phi) * np.sin(psi) * np.sin(theta))) / m
 
+    A[4, 6] = -(u1 * (np.cos(phi) * np.cos(psi) + np.sin(phi) * np.sin(psi) * np.sin(theta))) / m
     A[4, 7] = (u1 * np.cos(phi) * np.cos(theta) * np.sin(psi)) / m
     A[4, 8] = (u1 * (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta))) / m
+
     A[5, 6] = (u1 * np.cos(theta) * np.sin(phi)) / m
 
     A[9, 10] = (psi_dot * (Jy - Jz)) / Jx
@@ -142,16 +144,13 @@ def ddp(sys, x, u):
     xf = np.squeeze(sys.goal)
 
     Qf = params.Q_f_ddp
-    R = params.R_ddp
 
     q0 = np.zeros([1, timesteps - 1])
     qk = np.zeros([states, timesteps - 1])
     Qk = np.zeros([states, states, timesteps - 1])
-
     rk = np.zeros([controllers, timesteps - 1])
     Rk = np.zeros([controllers, controllers, timesteps - 1])
     Pk = np.zeros([controllers, states, timesteps - 1])
-
     A = np.zeros([states, states, timesteps - 1])
     B = np.zeros([states, controllers, timesteps - 1])
 
@@ -196,7 +195,7 @@ def ddp(sys, x, u):
         Lk[:, :, t] = np.linalg.solve(-Quu, Qxu.T)
         lk[:, t] = np.linalg.solve(-Quu, Qu)
 
-        V[:, t] = Q + Qu.T.dot(lk[:, t]) + 1 / 2 * lk[:, t].dot(Quu).dot(lk[:, t])
+        V[:, t] = Q + Qu.T.dot(lk[:, t]) + 1 / 2 * lk[:, t].T.dot(Quu).dot(lk[:, t])
         Vx[:, t] = Qx + Lk[:, :, t].T.dot(Qu) + Qxu.dot(lk[:, t]) + Lk[:, :, t].T.dot(Quu).dot(lk[:, t])
         Vxx[:, :, t] = Qxx + 2 * Lk[:, :, t].T.dot(Qxu.T) + Lk[:, :, t].T.dot(Quu).dot(Lk[:, :, t])
 
