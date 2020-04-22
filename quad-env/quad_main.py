@@ -118,6 +118,23 @@ if __name__ == "__main__":
     plt.figure(3)
     plt.plot(costvec)
 
+    plt.figure(4)
+    plt.subplot(411)
+    plt.plot(u[0, :])
+
+    plt.subplot(412)
+    plt.plot(u[2, :])
+
+    plt.subplot(413)
+    plt.plot(u[2, :])
+
+    plt.subplot(414)
+    plt.plot(u[3, :])
+
+
+
+
+
     plt.show()
 
 

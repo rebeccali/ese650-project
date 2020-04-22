@@ -119,7 +119,7 @@ def state_control_transition(sys, x, u):
     return A, B
 
 
-def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
+def state_action(L, Lx, Lu, Lxx, Luu, Lux, Lxu, V, Vx, Vxx, phi, B):
     """ takes in the value function, loss and the gradients and Hessians and evaluates
     the state action value function """
 
@@ -142,10 +142,6 @@ def ddp(sys, x, u):
     dt = params.dt
 
     xf = np.squeeze(sys.goal)
-
-    print(xf)
-    pdb.set_trace()
-    
 
     Qf = params.Q_f_ddp
 
@@ -193,8 +189,8 @@ def ddp(sys, x, u):
         # get state action value function to evaluate the linearized bellman equation
 
         Q, Qx, Qu, Qxx, Quu, Qxu = state_action(q0[:, t], qk[:, t], rk[:, t], Qk[:, :, t], Rk[:, :, t],
-                                                Pk[:, :, t].T, V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1], A[:, :, t],
-                                                B[:, :, t])
+                                                Pk[:, :, t], Pk[:, :, t].T, V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1],
+                                                A[:, :, t], B[:, :, t])
 
         Lk[:, :, t] = np.linalg.solve(-Quu, Qxu.T)
         lk[:, t] = np.linalg.solve(-Quu, Qu)
@@ -206,7 +202,6 @@ def ddp(sys, x, u):
     dx = np.zeros([states, 1])
 
     for t in range(timesteps - 1):
-
         gamma = params.gamma
 
         du = lk[:, t] + np.squeeze(Lk[:, :, t].dot(dx))
