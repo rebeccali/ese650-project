@@ -21,5 +21,5 @@ num_controllers = 4
 Q_r_ddp = np.diag([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10, 10, 10, 0.1, 0.1, 0.1])
 Q_f_ddp = np.diag([100, 100, 100, 10, 10, 10, 50, 50, 5, 5, 5, 5])
 
-R_ddp = 0.1 * np.eye(num_controllers)
+R_ddp = 0.001 * np.eye(num_controllers)
 gamma = 0.3

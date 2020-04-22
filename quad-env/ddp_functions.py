@@ -143,6 +143,10 @@ def ddp(sys, x, u):
 
     xf = np.squeeze(sys.goal)
 
+    print(xf)
+    pdb.set_trace()
+    
+
     Qf = params.Q_f_ddp
 
     q0 = np.zeros([1, timesteps - 1])

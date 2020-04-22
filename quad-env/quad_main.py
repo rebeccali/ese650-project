@@ -20,9 +20,11 @@ if __name__ == "__main__":
     quad.set_goal(xf)
 
     num_iter = params.num_iter
+
     u = np.zeros([params.num_controllers, params.timesteps-1])
     du = np.zeros([params.num_controllers, params.timesteps-1])
     x = np.zeros([params.states, params.timesteps])
+
     costvec = []
 
     for i in range(num_iter):
