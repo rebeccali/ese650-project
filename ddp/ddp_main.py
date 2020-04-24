@@ -1,7 +1,6 @@
 """ main file for quadrotor tracking with ddp controller """
 
 import params
-from simplequad import SimpleQuadEnv
 from ddp_functions import *
 import matplotlib.pyplot as plt
 
@@ -9,15 +8,20 @@ import pdb
 
 if __name__ == "__main__":
 
-    quad = SimpleQuadEnv()
+    ################################ system specific stuff ###################################
 
-    # set desired goal state
+    sys = SimpleQuadEnv()
+
+    # set desired goal state for the system
     xf = np.zeros([params.states, 1])
     xf[0, 0] = -1
     xf[1, 0] = 1
     xf[2, 0] = 0.5
 
-    quad.set_goal(xf)
+    sys.set_goal(xf)
+
+
+    ################################################################################################
 
     num_iter = params.num_iter
 
@@ -29,21 +33,21 @@ if __name__ == "__main__":
 
     for i in range(num_iter):
 
-        u_opt = ddp(quad, x, u)
+        u_opt = ddp(sys, x, u)
 
         # simulate the real system over the prediction time horizon, this uses the step function from the system
-        x_new, cost = apply_control(quad, u_opt)
+        x_new, cost = apply_control(sys, u_opt)
 
         # update state and control trajectories
         x = x_new
         u = u_opt
 
         # reset the system so that the next optimization step starts from the correct initial state
-        quad.reset()
+        sys.reset()
         costvec.append(-cost)
 
         # reset the system so that the next optimization step starts from the correct initial state
-        quad.reset()
+        sys.reset()
         
         print('iteration: ', i, "cost: ", -cost)
 
@@ -131,14 +135,7 @@ if __name__ == "__main__":
     plt.subplot(414)
     plt.plot(u[3, :])
 
-
-
-
-
     plt.show()
-
-
-    # rotation states
 
     pdb.set_trace()
 
