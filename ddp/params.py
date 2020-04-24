@@ -23,3 +23,11 @@ Q_r_ddp = Q_f_ddp
 
 R_ddp = 0.0001 * np.eye(num_controllers)
 gamma = 0.5         # how much we account for du in updating the control during optimization
+
+max_u=2 # max torque
+max_v = 8 # max angular velocity
+
+# goal state
+xf = np.zeros([states,1])
+xf[0, 0] = np.pi
+xf[1, 0] = 0

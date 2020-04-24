@@ -17,22 +17,22 @@ class SimpleQuadEnv(gym.Env):
         self.Q_r_ddp = params.Q_r_ddp
         self.R_ddp = params.R_ddp
 
-        self.state_limits = np.ones((12,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
+        self.state_limits = np.ones((params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
 
         self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
         self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated 0 to 1
 
         # initialize state to zero
-        self.state = np.zeros((12,))
+        self.state = np.zeros((params.states,))
         # state: x,y,z, dx,dy,dz, r,p,y, dr,dp,dy
 
-        self.goal = np.zeros((12,))  # TODO need to initialize this - maybe with
+        self.goal = np.zeros((params.states,))  # TODO need to initialize this - maybe with
         # initialization of the environment itself? Or maybe a separate function?
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
         if reset_state is None:
-            self.state = np.zeros((12,))
+            self.state = np.zeros((params.states,))
         else:
             self.state = reset_state
         return self.state

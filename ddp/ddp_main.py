@@ -3,6 +3,7 @@
 import params
 from ddp_functions import *
 import matplotlib.pyplot as plt
+from pendulum import PendulumEnv
 
 import pdb
 
@@ -10,16 +11,7 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    sys = SimpleQuadEnv()
-
-    # set desired goal state for the system
-    xf = np.zeros([params.states, 1])
-    xf[0, 0] = -1
-    xf[1, 0] = 1
-    xf[2, 0] = 0.5
-
-    sys.set_goal(xf)
-
+    sys = PendulumEnv()
 
     ################################################################################################
 
