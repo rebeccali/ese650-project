@@ -8,22 +8,25 @@ import numpy as np
 import os, torch, pickle, zipfile
 import imageio, shutil
 import scipy, scipy.misc, scipy.integrate
+import matplotlib.pyplot as plt
+
 solve_ivp = scipy.integrate.solve_ivp
 
+
 def L2_loss(u, v):
-    return (u-v).pow(2).mean()
+    return (u - v).pow(2).mean()
 
 
 def abs_loss(u, v):
-    return torch.abs(u-v).mean()
+    return torch.abs(u - v).mean()
 
 
-def to_pickle(thing, path): # save something
+def to_pickle(thing, path):  # save something
     with open(path, 'wb') as handle:
         pickle.dump(thing, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def from_pickle(path): # load something
+def from_pickle(path):  # load something
     thing = None
     with open(path, 'rb') as handle:
         thing = pickle.load(handle)
@@ -61,3 +64,27 @@ def rk4(fun, y0, t, dt, *args, **kwargs):
     k4 = fun(y0 + dt * k3, t + dt, *args, **kwargs)
     dy = dt / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4)
     return dy
+
+
+# ======================= Plotting =================
+
+
+figures = []
+
+
+def pltFig():
+    f, ax = plt.subplots()
+    global figures
+    figures += f
+    return f, ax
+
+
+def plot_trajectory_phase(estimate, truth):
+    """ Plots the phase space trajectory """
+    f, ax = pltFig()
+
+    ax.plot(estimate[0], estimate[1], 'b--', label='Model')
+    ax.plot(truth[0], truth[1], 'r-', label='Ground Truth')
+    ax.set_xlabel('Theta')
+    ax.set_ylabel('Theta Dot')
+    ax.legend()

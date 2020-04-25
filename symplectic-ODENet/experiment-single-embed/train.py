@@ -19,6 +19,7 @@ from utils import L2_loss, to_pickle
 
 import time
 
+
 def get_args():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--num_angle', default=1, type=int, help='number of generalized coordinates')
@@ -42,7 +43,7 @@ def get_args():
 def get_model_parm_nums(model):
     total = sum([param.nelement() for param in model.parameters()])
     return total
-    
+
 def train(args):
     # import ODENet
     from torchdiffeq import odeint_adjoint as odeint
@@ -85,7 +86,7 @@ def train(args):
         model = SymODEN_T(args.num_angle, M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=args.baseline, structure=True).to(device)
     else:
         raise RuntimeError('argument *structure* is set to true, no *baseline* or *naive*!')
-    
+
     num_parm = get_model_parm_nums(model)
     print('model contains {} parameters'.format(num_parm))
 
@@ -112,10 +113,10 @@ def train(args):
         for i in range(train_x.shape[0]):
 
             t = time.time()
-            train_x_hat = odeint(model, train_x[i, 0, :, :], t_eval, method=args.solver) 
+            train_x_hat = odeint(model, train_x[i, 0, :, :], t_eval, method=args.solver)
             forward_time = time.time() - t
             train_loss_mini = L2_loss(train_x[i,:,:,:], train_x_hat)
-            train_loss = train_loss + train_loss_mini 
+            train_loss = train_loss + train_loss_mini
 
             t = time.time()
             train_loss_mini.backward() ; optim.step() ; optim.zero_grad()
@@ -140,14 +141,14 @@ def train(args):
     train_x, t_eval = data['x'], data['t']
     test_x, t_eval = data['test_x'], data['t']
 
-    train_x = torch.tensor(train_x, requires_grad=True, dtype=torch.float32).to(device) 
+    train_x = torch.tensor(train_x, requires_grad=True, dtype=torch.float32).to(device)
     test_x = torch.tensor(test_x, requires_grad=True, dtype=torch.float32).to(device)
     t_eval = torch.tensor(t_eval, requires_grad=True, dtype=torch.float32).to(device)
 
     train_loss = []
     test_loss = []
     for i in range(train_x.shape[0]):
-        train_x_hat = odeint(model, train_x[i, 0, :, :], t_eval, method=args.solver)            
+        train_x_hat = odeint(model, train_x[i, 0, :, :], t_eval, method=args.solver)
         train_loss.append((train_x[i,:,:,:] - train_x_hat)**2)
 
         # run test data
@@ -173,7 +174,7 @@ if __name__ == "__main__":
     args = get_args()
     model, stats = train(args)
 
-    # save 
+    # save
     os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None
     if args.naive:
         label = '-naive_ode'
