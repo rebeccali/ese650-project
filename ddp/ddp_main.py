@@ -43,89 +43,31 @@ if __name__ == "__main__":
         
         print('iteration: ', i, "cost: ", -cost)
 
+    xf = sys.goal
+    x = np.asarray(x)
+    u = np.asarray(u)
+    costvec = np.asarray(costvec)
 
-    # translational states
     plt.figure(1)
 
-    plt.subplot(231)
+    plt.subplot(211)
     plt.plot(x[0, :])
     plt.plot(xf[0]*np.ones([params.timesteps, ]), 'r')
-    plt.title('x')
-
-    plt.subplot(232)
-    plt.plot(x[1, :])
-    plt.plot(xf[1] * np.ones([params.timesteps, ]), 'r')
-    plt.title('y')
-
-    plt.subplot(233)
-    plt.plot(x[2, :])
-    plt.plot(xf[2] * np.ones([params.timesteps, ]), 'r')
-    plt.title('z')
-
-    plt.subplot(234)
-    plt.plot(x[3, :])
-    plt.plot(xf[3] * np.ones([params.timesteps, ]), 'r')
-    plt.title('x dot')
-
-    plt.subplot(235)
-    plt.plot(x[4, :])
-    plt.plot(xf[4] * np.ones([params.timesteps, ]), 'r')
-    plt.title('y dot')
-
-    plt.subplot(236)
-    plt.plot(x[5, :])
-    plt.plot(xf[5] * np.ones([params.timesteps, ]), 'r')
-    plt.title('z dot')
-
-    # rotational states
-    plt.figure(2)
-
-    plt.subplot(231)
-    plt.plot(x[6, :])
-    plt.plot(xf[6]*np.ones([params.timesteps, ]), 'r')
-    plt.title('phi')
-
-    plt.subplot(232)
-    plt.plot(x[7, :])
-    plt.plot(xf[7] * np.ones([params.timesteps, ]), 'r')
     plt.title('theta')
 
-    plt.subplot(233)
-    plt.plot(x[8, :])
-    plt.plot(xf[8] * np.ones([params.timesteps, ]), 'r')
-    plt.title('psi')
+    plt.subplot(212)
+    plt.plot(x[1, :])
+    plt.plot(xf[1] * np.ones([params.timesteps, ]), 'r')
+    plt.title('thetadot')
 
-    plt.subplot(234)
-    plt.plot(x[9, :])
-    plt.plot(xf[9] * np.ones([params.timesteps, ]), 'r')
-    plt.title('phi dot')
-
-    plt.subplot(235)
-    plt.plot(x[10, :])
-    plt.plot(xf[10] * np.ones([params.timesteps, ]), 'r')
-    plt.title('theta dot')
-
-    plt.subplot(236)
-    plt.plot(x[11, :])
-    plt.plot(xf[11] * np.ones([params.timesteps, ]), 'r')
-    plt.title('psi dot')
-
-    # cost over iterations
     plt.figure(3)
-    plt.plot(costvec)
+    plt.plot(costvec[:, 0, 0])
+    plt.title('cost over iterations')
 
     plt.figure(4)
-    plt.subplot(411)
-    plt.plot(u[0, :])
+    plt.plot(u[0, :].T)
+    plt.title('u opt output')
 
-    plt.subplot(412)
-    plt.plot(u[2, :])
-
-    plt.subplot(413)
-    plt.plot(u[2, :])
-
-    plt.subplot(414)
-    plt.plot(u[3, :])
 
     plt.show()
 

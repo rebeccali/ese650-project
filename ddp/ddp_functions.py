@@ -26,8 +26,9 @@ def running_cost(sys, x, u):
     lu = R.dot(u)
     luu = R
     lux = np.zeros([controllers, states])
+    lxu = lux.T
 
-    return l0, lx, lxx, lu, luu, lux
+    return l0, lx, lxx, lu, luu, lux, lxu
 
 ################################ system specific stuff ###################################
 
@@ -40,11 +41,10 @@ def state_control_transition(sys, x, u):
     g = params.gr
     I = params.I
     b = params.b
-
     states = params.states
     controllers = params.num_controllers
 
-    th = x[0, 0]
+    th = x[0]
 
     A = np.zeros([states, states])
     B = np.zeros([states, controllers])
@@ -61,7 +61,7 @@ def state_control_transition(sys, x, u):
 #################################################################################################
 
 
-def state_action(L, Lx, Lu, Lxx, Luu, Lux, Lxu, V, Vx, Vxx, phi, B):
+def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
     """ takes in the value function, loss and the gradients and Hessians and evaluates
     the state action value function """
 
@@ -92,7 +92,7 @@ def ddp(sys, x, u):
     Qk = np.zeros([states, states, timesteps - 1])
     rk = np.zeros([controllers, timesteps - 1])
     Rk = np.zeros([controllers, controllers, timesteps - 1])
-    Pk = np.zeros([controllers, states, timesteps - 1])
+    Pk = np.zeros([states, controllers, timesteps - 1])
     A = np.zeros([states, states, timesteps - 1])
     B = np.zeros([states, controllers, timesteps - 1])
 
@@ -103,14 +103,14 @@ def ddp(sys, x, u):
     u_new = np.zeros([controllers, timesteps - 1])
 
     for t in range(timesteps - 1):
-        l0, lx, lxx, lu, luu, lux = running_cost(sys, x[:, t], u[:, t])
+        l0, lx, lxx, lu, luu, lux, lxu = running_cost(sys, x[:, t], u[:, t])
 
         q0[:, t] = dt * l0
         qk[:, t] = dt * lx
         Qk[:, :, t] = dt * lxx
         rk[:, t] = dt * lu
         Rk[:, :, t] = dt * luu
-        Pk[:, :, t] = dt * lux
+        Pk[:, :, t] = dt * lxu
 
         dfx, dfu = state_control_transition(sys, x[:, t], u[:, t])
 
@@ -120,7 +120,7 @@ def ddp(sys, x, u):
     # back prop for value function
     last_index = int(V.shape[1] - 1)
 
-    V[:, last_index] = 0.5 * (x[:, last_index] - xf).T.dot(Qf).dot(x[:, last_index] - xf)
+    V[:, last_index] = (x[:, last_index] - xf).T.dot(Qf).dot(x[:, last_index] - xf)
     Vx[:, last_index] = Qf.dot(x[:, last_index] - xf)
     Vxx[:, :, last_index] = Qf
 
@@ -131,11 +131,14 @@ def ddp(sys, x, u):
         # get state action value function to evaluate the linearized bellman equation
 
         Q, Qx, Qu, Qxx, Quu, Qxu = state_action(q0[:, t], qk[:, t], rk[:, t], Qk[:, :, t], Rk[:, :, t],
-                                                Pk[:, :, t], Pk[:, :, t].T, V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1],
+                                                Pk[:, :, t], V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1],
                                                 A[:, :, t], B[:, :, t])
 
-        Lk[:, :, t] = np.linalg.solve(-Quu, Qxu.T)
-        lk[:, t] = np.linalg.solve(-Quu, Qu)
+        # Lk[:, :, t] = np.linalg.solve(-Quu, Qxu.T)
+        # lk[:, t] = np.linalg.solve(-Quu, Qu)
+
+        Lk[:, :, t] = -1 * np.linalg.inv(Quu).dot(Qxu.T)
+        lk[:, t] = -1 * np.linalg.inv(Quu).dot(Qu)
 
         V[:, t] = Q + Qu.T.dot(lk[:, t]) + 1 / 2 * lk[:, t].T.dot(Quu).dot(lk[:, t])
         Vx[:, t] = Qx + Lk[:, :, t].T.dot(Qu) + Qxu.dot(lk[:, t]) + Lk[:, :, t].T.dot(Quu).dot(lk[:, t])

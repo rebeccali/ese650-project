@@ -18,14 +18,20 @@ class PendulumEnv(gym.Env):
         self.g = params.gr
         self.m = params.m
         self.l = params.L
+        self.b = params.b
+        self.I = params.I
 
         self.Q_r_ddp = params.Q_r_ddp
         self.R_ddp = params.R_ddp
 
-        self.state_limits = np.ones((params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
-
-        self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
-        self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated 0 to 1
+        high = np.array([1., 1., self.max_speed])
+        self.min_state = -high
+        self.max_state = high
+        self.min_action = [-self.max_torque]
+        self.max_action = [self.max_torque]
+        self.viewer = None
+        self.observation_space = spaces.Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
+        self.action_space = spaces.Box(np.array([-self.max_torque]), np.array([self.max_torque]))
 
         # set initial and final states
         self.state = np.zeros((params.states,))
@@ -38,26 +44,26 @@ class PendulumEnv(gym.Env):
         return [seed]
 
     def step(self, u):
+
         th, thdot = self.state  # th := theta
 
         g = self.g
         m = self.m
         l = self.l
+        b = self.b
         dt = self.dt
+        I = self.I
 
-        u = np.clip(u, -self.max_torque, self.max_torque)[0]
-
-        newthdot = thdot + (-3 * g / (2 * l) * np.sin(th + np.pi) + 3. / (m * l ** 2) * u) * dt
-        newth = th + newthdot * dt
-        newthdot = np.clip(newthdot, -self.max_speed, self.max_speed)  # pylint: disable=E1111
+        u = u[0]
+        acceleration = -b/I * thdot - m * g * l/I * np.sin(th) + u/I
+        newth = th + thdot * dt
+        newthdot = thdot + acceleration * dt
 
         self.state = np.array([newth, newthdot])
 
         reward = self.get_ddp_reward(u)
 
         return self.state, reward
-
-        # return self._get_obs(), -costs, False, {}
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
@@ -73,12 +79,13 @@ class PendulumEnv(gym.Env):
 
     def get_ddp_reward(self, u):
 
+
         Q = self.Q_r_ddp
         R = self.R_ddp
 
         delta_x = self.state - np.squeeze(self.goal)
 
-        cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u.T.dot(R).dot(u)
+        cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u * R * u
 
         # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
 
