@@ -20,7 +20,7 @@ class SimpleQuadEnv(gym.Env):
         self.state_limits = np.ones((params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
 
         self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
-        self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated 0 to 1
+        self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated "infinitely"
 
         # initialize state to zero
         self.state = np.zeros((params.states,))
@@ -50,7 +50,8 @@ class SimpleQuadEnv(gym.Env):
         u1 = f1 + f2 + f3 + f4  # thrust force
         u2 = f4 - f2  # roll force
         u3 = f1 - f3  # pitch force
-        u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment (TODO: WHERE DOES 0.05 come from??)
+        u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment 
+        # TODO : WHERE DOES 0.05 come from??)
 
         Jx = self.J[0, 0]
         Jy = self.J[1, 1]
