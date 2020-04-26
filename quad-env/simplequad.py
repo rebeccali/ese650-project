@@ -112,7 +112,15 @@ class SimpleQuadEnv(gym.Env):
         trans = (1/2)*self.m*np.dot(dx,dx)
         rot = (1/2)*(dth.T @ self.J) @ dth
         
-        return trans + rot + self.m*self.g*z
+        return trans + rot - self.m*self.g*z
+    
+    def get_pdot(self):
+        pdot = np.zeros((6,))
+        pdot[2] = self.m*self.g
+        return pdot
+
+    def get_qdot(self):
+        return np.concatenate((self.state[3:6],self.state[9:12]))
 
     def set_goal(self, goal):
         # takes a size (12,) numpy array representing the goal state against which rewards should be measured
