@@ -93,6 +93,7 @@ def ddp(sys, x, u):
     rk = np.zeros([controllers, timesteps - 1])
     Rk = np.zeros([controllers, controllers, timesteps - 1])
     Pk = np.zeros([states, controllers, timesteps - 1])
+
     A = np.zeros([states, states, timesteps - 1])
     B = np.zeros([states, controllers, timesteps - 1])
 
@@ -114,18 +115,19 @@ def ddp(sys, x, u):
 
         dfx, dfu = state_control_transition(sys, x[:, t], u[:, t])
 
-        A[:, :, t] = np.eye(states, states) + dfx * dt
+        A[:, :, t] = np.eye(states) + dfx * dt
         B[:, :, t] = dfu * dt
 
     # back prop for value function
     last_index = int(V.shape[1] - 1)
+    err = x[:, last_index] - xf
 
-    V[:, last_index] = (x[:, last_index] - xf).T.dot(Qf).dot(x[:, last_index] - xf)
-    Vx[:, last_index] = Qf.dot(x[:, last_index] - xf)
+    V[:, last_index] = err.T.dot(Qf).dot(err)
+    Vx[:, last_index] = Qf.dot(err)
     Vxx[:, :, last_index] = Qf
 
-    Lk = np.zeros([controllers, states, timesteps - 1])
-    lk = np.zeros([controllers, timesteps - 1])
+    Lk = np.zeros([controllers, states, timesteps])
+    lk = np.zeros([controllers, timesteps])
 
     for t in range((timesteps - 2), -1, -1):
         # get state action value function to evaluate the linearized bellman equation
@@ -134,13 +136,13 @@ def ddp(sys, x, u):
                                                 Pk[:, :, t], V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1],
                                                 A[:, :, t], B[:, :, t])
 
-        # Lk[:, :, t] = np.linalg.solve(-Quu, Qxu.T)
-        # lk[:, t] = np.linalg.solve(-Quu, Qu)
+        # Lk[:, :, t] = -1 * np.linalg.solve(Quu, Qxu.T)
+        # lk[:, t] = -1 * np.linalg.solve(Quu, Qu)
 
         Lk[:, :, t] = -1 * np.linalg.inv(Quu).dot(Qxu.T)
         lk[:, t] = -1 * np.linalg.inv(Quu).dot(Qu)
 
-        V[:, t] = Q + Qu.T.dot(lk[:, t]) + 1 / 2 * lk[:, t].T.dot(Quu).dot(lk[:, t])
+        V[:, t] = Q + Qu.T.dot(lk[:, t]) + 1 / 2 * lk[:, t].dot(Quu).dot(lk[:, t])
         Vx[:, t] = Qx + Lk[:, :, t].T.dot(Qu) + Qxu.dot(lk[:, t]) + Lk[:, :, t].T.dot(Quu).dot(lk[:, t])
         Vxx[:, :, t] = Qxx + 2 * Lk[:, :, t].T.dot(Qxu.T) + Lk[:, :, t].T.dot(Quu).dot(Lk[:, :, t])
 
@@ -166,7 +168,7 @@ def apply_control(sys, u_opt):
     states = params.states
 
     x_new = np.zeros([states, timesteps])
-    x_new[:, 0] = sys.state
+    x_new[:, 0] = sys.x0
     cost = 0
 
     for t in range(timesteps - 1):
@@ -175,7 +177,7 @@ def apply_control(sys, u_opt):
         # returns next state and the reward of that state
         x1, c1 = sys.step(u)
 
-        x_new[:, t] = x1
+        x_new[:, t+1] = x1
         cost += c1
 
-    return x_new, cost
+    return x_new, -cost

@@ -11,9 +11,7 @@ import pdb
 # from open ai gym source:
 class PendulumEnv(gym.Env):
 
-    def __init__(self, g=10.0):
-        self.max_speed = params.max_v
-        self.max_torque = params.max_u
+    def __init__(self):
         self.dt = params.dt
         self.g = params.gr
         self.m = params.m
@@ -21,21 +19,26 @@ class PendulumEnv(gym.Env):
         self.b = params.b
         self.I = params.I
 
-        self.Q_r_ddp = params.Q_r_ddp
+        self.Q_r_ddp = params.Q_f_ddp
         self.R_ddp = params.R_ddp
+
+        # set initial and final states
+        self.state = np.zeros((params.states,))
+        self.goal = params.xf
+        self.x0 = np.zeros((params.states,))
+
+
+        self.max_speed = params.max_speed
+        self.max_torque = params.max_torque
 
         high = np.array([1., 1., self.max_speed])
         self.min_state = -high
         self.max_state = high
         self.min_action = [-self.max_torque]
         self.max_action = [self.max_torque]
-        self.viewer = None
+
         self.observation_space = spaces.Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
         self.action_space = spaces.Box(np.array([-self.max_torque]), np.array([self.max_torque]))
-
-        # set initial and final states
-        self.state = np.zeros((params.states,))
-        self.goal = params.xf
 
         self.seed()
 
@@ -61,6 +64,8 @@ class PendulumEnv(gym.Env):
 
         self.state = np.array([newth, newthdot])
 
+
+
         reward = self.get_ddp_reward(u)
 
         return self.state, reward
@@ -79,7 +84,6 @@ class PendulumEnv(gym.Env):
 
     def get_ddp_reward(self, u):
 
-
         Q = self.Q_r_ddp
         R = self.R_ddp
 
@@ -89,7 +93,5 @@ class PendulumEnv(gym.Env):
 
         # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
 
-        return -cost
+        return cost
 
-# def angle_normalize(x):
-#     return (((x + np.pi) % (2 * np.pi)) - np.pi)

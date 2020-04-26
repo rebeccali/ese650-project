@@ -16,18 +16,14 @@ if __name__ == "__main__":
     ################################################################################################
 
     num_iter = params.num_iter
-
-    u = np.zeros([params.num_controllers, params.timesteps-1])
-    du = np.zeros([params.num_controllers, params.timesteps-1])
     x = np.zeros([params.states, params.timesteps])
+    u = np.zeros([params.num_controllers, params.timesteps-1])
 
     costvec = []
 
     for i in range(num_iter):
 
         u_opt = ddp(sys, x, u)
-
-        # simulate the real system over the prediction time horizon, this uses the step function from the system
         x_new, cost = apply_control(sys, u_opt)
 
         # update state and control trajectories
@@ -68,8 +64,4 @@ if __name__ == "__main__":
     plt.plot(u[0, :].T)
     plt.title('u opt output')
 
-
     plt.show()
-
-    pdb.set_trace()
-
