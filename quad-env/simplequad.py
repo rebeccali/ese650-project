@@ -103,6 +103,16 @@ class SimpleQuadEnv(gym.Env):
         # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
 
         return -cost
+    
+    def get_H(self):
+        dx = self.state[3:6]
+        dth = self.state[9:12]
+        z = self.state[2]
+        
+        trans = (1/2)*self.m*np.dot(dx,dx)
+        rot = (1/2)*(dth.T @ self.J) @ dth
+        
+        return trans + rot + self.m*self.g*z
 
     def set_goal(self, goal):
         # takes a size (12,) numpy array representing the goal state against which rewards should be measured
