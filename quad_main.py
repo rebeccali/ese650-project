@@ -1,15 +1,24 @@
 """ main file for quadrotor tracking with ddp controller """
 
-import params
-from simplequad import SimpleQuadEnv
-from ddp_functions import *
+from ddp.ddp_functions import *
+import gym
+import environments
+from environments import quadrotor_params as params
 import matplotlib.pyplot as plt
-
+import argparse
+import numpy as np
 import pdb
 
 if __name__ == "__main__":
+    # Parse Command Line Arguments
+    # e.g. python ddp_main.py --test
+    parser = argparse.ArgumentParser(description='Run DDP')
+    parser.add_argument('--test', action='store_true',
+                        help='Run as test')
+    args = parser.parse_args()
 
-    quad = SimpleQuadEnv()
+    # quad = SimpleQuadEnv()
+    quad = gym.make('Simple-Quad-v0')
 
     # set desired goal state
     xf = np.zeros([params.states, 1])
@@ -20,7 +29,8 @@ if __name__ == "__main__":
     quad.set_goal(xf)
 
     num_iter = params.num_iter
-
+    if args.test:
+        num_iter = 3
     u = np.zeros([params.num_controllers, params.timesteps-1])
     du = np.zeros([params.num_controllers, params.timesteps-1])
     x = np.zeros([params.states, params.timesteps])
@@ -44,7 +54,7 @@ if __name__ == "__main__":
 
         # reset the system so that the next optimization step starts from the correct initial state
         quad.reset()
-        
+
         print('iteration: ', i, "cost: ", -cost)
 
 
@@ -133,12 +143,7 @@ if __name__ == "__main__":
 
 
 
-
-
-    plt.show()
-
-
-    # rotation states
-
-    pdb.set_trace()
+    if not args.test:
+        plt.show()
+    # pdb.set_trace()
 

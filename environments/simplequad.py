@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import matplotlib.pyplot as plt
-import params
+from environments import quadrotor_params as params
 import pdb
 
 
@@ -15,7 +15,10 @@ class SimpleQuadEnv(gym.Env):
         self.L = params.L  # length (m) from COM to thrust point of action
         self.m = params.m
         self.Q_r_ddp = params.Q_r_ddp
+        self.Q_f_ddp = params.Q_f_ddp
         self.R_ddp = params.R_ddp
+        self.states = params.states
+        self.num_controllers = params.num_controllers
 
         self.state_limits = np.ones((params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
 
@@ -129,3 +132,91 @@ class SimpleQuadEnv(gym.Env):
         ax4.plot(t, control_history)
 
         plt.show()
+
+    def state_control_transition(self, x, u):
+        """ takes in state and control trajectories and outputs the Jacobians for the linearized system
+        edit function to use with autograd when linearizing the neural network output REBECCA """
+
+        m = params.m
+        L = params.L
+        J = params.J
+        Jx = J[0, 0]
+        Jy = J[1, 1]
+        Jz = J[2, 2]
+
+        states = params.states
+        controllers = params.num_controllers
+
+        A = np.zeros([states, states])
+        B = np.zeros([states, controllers])
+
+        phi = x[6]
+        theta = x[7]
+        psi = x[8]
+        phi_dot = x[9]
+        theta_dot = x[10]
+        psi_dot = x[11]
+
+        f1 = u[0]
+        f2 = u[1]
+        f3 = u[2]
+        f4 = u[3]
+
+        u1 = f1 + f2 + f3 + f4  # total force
+        u2 = f4 - f2  # roll actuation
+        u3 = f1 - f3  # pitch actuation
+        u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment
+
+        A[0, 3] = 1
+        A[1, 4] = 1
+        A[2, 5] = 1
+        A[6, 9] = 1
+        A[7, 10] = 1
+        A[8, 11] = 1
+
+        A[3, 6] = (u1 * (np.cos(phi) * np.sin(psi) - np.cos(psi) * np.sin(phi) * np.sin(theta))) / m
+        A[3, 7] = (u1 * np.cos(phi) * np.cos(psi) * np.cos(theta)) / m
+        A[3, 8] = (u1 * (np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta))) / m
+
+        A[4, 6] = -(u1 * (np.cos(phi) * np.cos(psi) + np.sin(phi) * np.sin(psi) * np.sin(theta))) / m
+        A[4, 7] = (u1 * np.cos(phi) * np.cos(theta) * np.sin(psi)) / m
+        A[4, 8] = (u1 * (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta))) / m
+
+        A[5, 6] = (u1 * np.cos(theta) * np.sin(phi)) / m
+
+        A[9, 10] = (psi_dot * (Jy - Jz)) / Jx
+        A[9, 11] = (theta_dot * (Jy - Jz)) / Jx
+
+        A[10, 9] = -(psi_dot * (Jx - Jz)) / Jy
+        A[10, 11] = -(phi_dot * (Jx - Jz)) / Jy
+
+        A[11, 9] = (theta_dot * (Jx - Jy)) / Jz
+        A[11, 10] = (phi_dot * (Jx - Jy)) / Jz
+
+        B[3, 0] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
+        B[3, 1] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
+        B[3, 2] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
+        B[3, 3] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
+
+        B[4, 0] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
+        B[4, 1] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
+        B[4, 2] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
+        B[4, 3] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
+
+        B[5, 0] = -(np.cos(phi) * np.cos(theta)) / m
+        B[5, 1] = -(np.cos(phi) * np.cos(theta)) / m
+        B[5, 2] = -(np.cos(phi) * np.cos(theta)) / m
+        B[5, 3] = -(np.cos(phi) * np.cos(theta)) / m
+
+        B[9, 1] = -L / Jx
+        B[9, 3] = L / Jx
+
+        B[10, 0] = L / Jy
+        B[10, 2] = -L / Jy
+
+        B[11, 0] = -1 / (20 * Jz)
+        B[11, 1] = 1 / (20 * Jz)
+        B[11, 2] = -1 / (20 * Jz)
+        B[11, 3] = 1 / (20 * Jz)
+
+        return A, B

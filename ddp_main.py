@@ -1,16 +1,19 @@
 """ main file for quadrotor tracking with ddp controller """
 
-import params
-from ddp_functions import *
+
+from ddp.ddp_functions import *
+from ddp import ddp_params as params
 import matplotlib.pyplot as plt
-from pendulum import PendulumEnv
+import gym
+import environments
 import argparse
+import numpy as np
 
 import pdb
 
 if __name__ == "__main__":
-    # Do some argument parsing
-
+    # Parse Command Line Arguments
+    # e.g. python ddp_main.py --test
     parser = argparse.ArgumentParser(description='Run DDP')
     parser.add_argument('--test', action='store_true',
                         help='Run as test')
@@ -18,13 +21,13 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    sys = PendulumEnv()
-
+    # sys = PendulumEnv()
+    sys = gym.make('DDP-Pendulum-v0')
     ################################################################################################
 
     num_iter = params.num_iter
     if args.test:
-        num_iter = 1
+        num_iter = 3
     x = np.zeros([params.states, params.timesteps])
     u = np.zeros([params.num_controllers, params.timesteps-1])
 

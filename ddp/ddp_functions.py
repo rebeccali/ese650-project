@@ -1,5 +1,5 @@
 import numpy as np
-import params
+from ddp import ddp_params
 import pdb
 
 
@@ -13,10 +13,10 @@ def running_cost(sys, x, u):
     """
     xf = np.squeeze(sys.goal)
 
-    states = params.states
-    controllers = params.num_controllers
-    R = params.R_ddp
-    Qr = params.Q_r_ddp
+    states = sys.states
+    controllers = sys.num_controllers
+    R = sys.R_ddp
+    Qr = sys.Q_r_ddp
 
     err = x - xf
 
@@ -29,36 +29,6 @@ def running_cost(sys, x, u):
     lxu = lux.T
 
     return l0, lx, lxx, lu, luu, lux, lxu
-
-################################ system specific stuff ###################################
-
-def state_control_transition(sys, x, u):
-    """ takes in state and control trajectories and outputs the Jacobians for the linearized system
-    edit function to use with autograd when linearizing the neural network output REBECCA """
-
-    m = params.m
-    L = params.L
-    g = params.gr
-    I = params.I
-    b = params.b
-    states = params.states
-    controllers = params.num_controllers
-
-    th = x[0]
-
-    A = np.zeros([states, states])
-    B = np.zeros([states, controllers])
-
-    A[0, 1] = 1
-    A[1, 0] = -m * g * L / I * np.cos(th)
-    A[1, 1] = -b / I
-
-    B[0, 0] = 0
-    B[1, 0] = 1 / I
-
-    return A, B
-
-#################################################################################################
 
 
 def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
@@ -78,14 +48,14 @@ def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
 def ddp(sys, x, u):
     """ takes in the current state and control trajectories and outputs optimal control trajectory """
 
-    states = params.states
-    controllers = params.num_controllers
-    timesteps = params.timesteps
-    dt = params.dt
+    states = sys.states
+    controllers = sys.num_controllers
+    timesteps = ddp_params.timesteps
+    dt = ddp_params.dt
 
     xf = np.squeeze(sys.goal)
 
-    Qf = params.Q_f_ddp
+    Qf = sys.Q_f_ddp
 
     q0 = np.zeros([1, timesteps - 1])
     qk = np.zeros([states, timesteps - 1])
@@ -113,7 +83,7 @@ def ddp(sys, x, u):
         Rk[:, :, t] = dt * luu
         Pk[:, :, t] = dt * lxu
 
-        dfx, dfu = state_control_transition(sys, x[:, t], u[:, t])
+        dfx, dfu = sys.state_control_transition(x[:, t], u[:, t])
 
         A[:, :, t] = np.eye(states) + dfx * dt
         B[:, :, t] = dfu * dt
@@ -149,7 +119,7 @@ def ddp(sys, x, u):
     dx = np.zeros([states, 1])
 
     for t in range(timesteps - 1):
-        gamma = params.gamma
+        gamma = ddp_params.gamma
 
         du = lk[:, t] + np.squeeze(Lk[:, :, t].dot(dx))
         dx = np.squeeze(A[:, :, t].dot(dx)) + B[:, :, t].dot(du)
@@ -164,11 +134,11 @@ def ddp(sys, x, u):
 def apply_control(sys, u_opt):
     """ evaluates the controlled system trajectory """
 
-    timesteps = params.timesteps
-    states = params.states
+    timesteps = ddp_params.timesteps
+    states = sys.states
 
     x_new = np.zeros([states, timesteps])
-    x_new[:, 0] = sys.x0
+    x_new[:, 0] = sys.state
     cost = 0
 
     for t in range(timesteps - 1):

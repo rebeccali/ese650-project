@@ -4,7 +4,7 @@ from gym.utils import seeding
 
 import numpy as np
 import matplotlib.pyplot as plt
-import params
+from environments import pendulum_params as params
 import pdb
 
 
@@ -20,13 +20,14 @@ class PendulumEnv(gym.Env):
         self.I = params.I
 
         self.Q_r_ddp = params.Q_f_ddp
+        self.Q_f_ddp = params.Q_f_ddp
         self.R_ddp = params.R_ddp
+        self.states = params.states
+        self.num_controllers = params.num_controllers
 
         # set initial and final states
         self.state = np.zeros((params.states,))
         self.goal = params.xf
-        self.x0 = np.zeros((params.states,))
-
 
         self.max_speed = params.max_speed
         self.max_torque = params.max_torque
@@ -64,8 +65,6 @@ class PendulumEnv(gym.Env):
 
         self.state = np.array([newth, newthdot])
 
-
-
         reward = self.get_ddp_reward(u)
 
         return self.state, reward
@@ -95,3 +94,29 @@ class PendulumEnv(gym.Env):
 
         return cost
 
+
+    def state_control_transition(self, x, u):
+        """ takes in state and control trajectories and outputs the Jacobians for the linearized system
+        edit function to use with autograd when linearizing the neural network output REBECCA """
+
+        m = params.m
+        L = params.L
+        g = params.gr
+        I = params.I
+        b = params.b
+        states = params.states
+        controllers = params.num_controllers
+
+        th = x[0]
+
+        A = np.zeros([states, states])
+        B = np.zeros([states, controllers])
+
+        A[0, 1] = 1
+        A[1, 0] = -m * g * L / I * np.cos(th)
+        A[1, 1] = -b / I
+
+        B[0, 0] = 0
+        B[1, 0] = 1 / I
+
+        return A, B
