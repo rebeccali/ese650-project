@@ -4,7 +4,7 @@ from gym.utils import seeding
 
 import numpy as np
 import matplotlib.pyplot as plt
-from environments import pendulum_params as params
+from environments import pendulum_params
 import pdb
 
 
@@ -12,25 +12,25 @@ import pdb
 class PendulumEnv(gym.Env):
 
     def __init__(self):
-        self.dt = params.dt
-        self.g = params.gr
-        self.m = params.m
-        self.l = params.L
-        self.b = params.b
-        self.I = params.I
+        self.dt = pendulum_params.dt
+        self.g = pendulum_params.gr
+        self.m = pendulum_params.m
+        self.l = pendulum_params.L
+        self.b = pendulum_params.b
+        self.I = pendulum_params.I
 
-        self.Q_r_ddp = params.Q_f_ddp
-        self.Q_f_ddp = params.Q_f_ddp
-        self.R_ddp = params.R_ddp
-        self.states = params.states
-        self.num_controllers = params.num_controllers
+        self.Q_r_ddp = pendulum_params.Q_f_ddp
+        self.Q_f_ddp = pendulum_params.Q_f_ddp
+        self.R_ddp = pendulum_params.R_ddp
+        self.states = pendulum_params.states
+        self.num_controllers = pendulum_params.num_controllers
 
         # set initial and final states
-        self.state = np.zeros((params.states,))
-        self.goal = params.xf
+        self.state = np.zeros((pendulum_params.states,))
+        self.goal = pendulum_params.xf
 
-        self.max_speed = params.max_speed
-        self.max_torque = params.max_torque
+        self.max_speed = pendulum_params.max_speed
+        self.max_torque = pendulum_params.max_torque
 
         high = np.array([1., 1., self.max_speed])
         self.min_state = -high
@@ -59,7 +59,7 @@ class PendulumEnv(gym.Env):
         I = self.I
 
         u = u[0]
-        acceleration = -b/I * thdot - m * g * l/I * np.sin(th) + u/I
+        acceleration = -b / I * thdot - m * g * l / I * np.sin(th) + u / I
         newth = th + thdot * dt
         newthdot = thdot + acceleration * dt
 
@@ -72,7 +72,7 @@ class PendulumEnv(gym.Env):
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
         if reset_state is None:
-            self.state = np.zeros((params.states,))
+            self.state = np.zeros((pendulum_params.states,))
         else:
             self.state = reset_state
         return self.state
@@ -94,18 +94,17 @@ class PendulumEnv(gym.Env):
 
         return cost
 
-
     def state_control_transition(self, x, u):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
         edit function to use with autograd when linearizing the neural network output REBECCA """
 
-        m = params.m
-        L = params.L
-        g = params.gr
-        I = params.I
-        b = params.b
-        states = params.states
-        controllers = params.num_controllers
+        m = pendulum_params.m
+        L = pendulum_params.L
+        g = pendulum_params.gr
+        I = pendulum_params.I
+        b = pendulum_params.b
+        states = pendulum_params.states
+        controllers = pendulum_params.num_controllers
 
         th = x[0]
 

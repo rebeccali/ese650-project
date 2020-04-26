@@ -2,40 +2,40 @@ import gym
 from gym import spaces
 import numpy as np
 import matplotlib.pyplot as plt
-from environments import quadrotor_params as params
+from environments import quadrotor_params
 import pdb
 
 
 class SimpleQuadEnv(gym.Env):
 
     def __init__(self):
-        self.dt = params.dt
-        self.g = params.gr  # gravity
-        self.J = params.J  # moment of inertia
-        self.L = params.L  # length (m) from COM to thrust point of action
-        self.m = params.m
-        self.Q_r_ddp = params.Q_r_ddp
-        self.Q_f_ddp = params.Q_f_ddp
-        self.R_ddp = params.R_ddp
-        self.states = params.states
-        self.num_controllers = params.num_controllers
+        self.dt = quadrotor_params.dt
+        self.g = quadrotor_params.gr  # gravity
+        self.J = quadrotor_params.J  # moment of inertia
+        self.L = quadrotor_params.L  # length (m) from COM to thrust point of action
+        self.m = quadrotor_params.m
+        self.Q_r_ddp = quadrotor_params.Q_r_ddp
+        self.Q_f_ddp = quadrotor_params.Q_f_ddp
+        self.R_ddp = quadrotor_params.R_ddp
+        self.states = quadrotor_params.states
+        self.num_controllers = quadrotor_params.num_controllers
 
-        self.state_limits = np.ones((params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
+        self.state_limits = np.ones((quadrotor_params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
 
         self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
         self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated 0 to 1
 
         # initialize state to zero
-        self.state = np.zeros((params.states,))
+        self.state = np.zeros((quadrotor_params.states,))
         # state: x,y,z, dx,dy,dz, r,p,y, dr,dp,dy
 
-        self.goal = np.zeros((params.states,))  # TODO need to initialize this - maybe with
+        self.goal = np.zeros((quadrotor_params.states,))  # TODO need to initialize this - maybe with
         # initialization of the environment itself? Or maybe a separate function?
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
         if reset_state is None:
-            self.state = np.zeros((params.states,))
+            self.state = np.zeros((quadrotor_params.states,))
         else:
             self.state = reset_state
         return self.state
@@ -69,7 +69,7 @@ class SimpleQuadEnv(gym.Env):
         theta_dot = state[10]
         psi_dot = state[11]
 
-        state_dot = np.zeros((params.states,))
+        state_dot = np.zeros((quadrotor_params.states,))
 
         # translational ------------------------------------------------------
         state_dot[0:3] = [x_dot, y_dot, z_dot]
@@ -137,15 +137,15 @@ class SimpleQuadEnv(gym.Env):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
         edit function to use with autograd when linearizing the neural network output REBECCA """
 
-        m = params.m
-        L = params.L
-        J = params.J
+        m = quadrotor_params.m
+        L = quadrotor_params.L
+        J = quadrotor_params.J
         Jx = J[0, 0]
         Jy = J[1, 1]
         Jz = J[2, 2]
 
-        states = params.states
-        controllers = params.num_controllers
+        states = quadrotor_params.states
+        controllers = quadrotor_params.num_controllers
 
         A = np.zeros([states, states])
         B = np.zeros([states, controllers])

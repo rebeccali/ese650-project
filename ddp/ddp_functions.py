@@ -147,7 +147,7 @@ def apply_control(sys, u_opt):
         # returns next state and the reward of that state
         x1, c1 = sys.step(u)
 
-        x_new[:, t+1] = x1
+        x_new[:, t + 1] = x1
         cost += c1
 
     return x_new, -cost

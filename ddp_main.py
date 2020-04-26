@@ -1,8 +1,7 @@
 """ main file for quadrotor tracking with ddp controller """
 
-
 from ddp.ddp_functions import *
-from ddp import ddp_params as params
+from ddp import ddp_params
 import matplotlib.pyplot as plt
 import gym
 import environments
@@ -25,16 +24,15 @@ if __name__ == "__main__":
     sys = gym.make('DDP-Pendulum-v0')
     ################################################################################################
 
-    num_iter = params.num_iter
+    num_iter = ddp_params.num_iter
     if args.test:
         num_iter = 3
-    x = np.zeros([params.states, params.timesteps])
-    u = np.zeros([params.num_controllers, params.timesteps-1])
+    x = np.zeros([ddp_params.states, ddp_params.timesteps])
+    u = np.zeros([ddp_params.num_controllers, ddp_params.timesteps - 1])
 
     costvec = []
 
     for i in range(num_iter):
-
         u_opt = ddp(sys, x, u)
         x_new, cost = apply_control(sys, u_opt)
 
@@ -60,12 +58,12 @@ if __name__ == "__main__":
 
     plt.subplot(211)
     plt.plot(x[0, :])
-    plt.plot(xf[0]*np.ones([params.timesteps, ]), 'r')
+    plt.plot(xf[0] * np.ones([ddp_params.timesteps, ]), 'r')
     plt.title('theta')
 
     plt.subplot(212)
     plt.plot(x[1, :])
-    plt.plot(xf[1] * np.ones([params.timesteps, ]), 'r')
+    plt.plot(xf[1] * np.ones([ddp_params.timesteps, ]), 'r')
     plt.title('thetadot')
 
     plt.figure(3)

@@ -27,7 +27,6 @@ class PendulumEnv(gym.Env):
         self.goal = params.xf
         self.x0 = np.zeros((params.states,))
 
-
         self.max_speed = params.max_speed
         self.max_torque = params.max_torque
 
@@ -58,13 +57,11 @@ class PendulumEnv(gym.Env):
         I = self.I
 
         u = u[0]
-        acceleration = -b/I * thdot - m * g * l/I * np.sin(th) + u/I
+        acceleration = -b / I * thdot - m * g * l / I * np.sin(th) + u / I
         newth = th + thdot * dt
         newthdot = thdot + acceleration * dt
 
         self.state = np.array([newth, newthdot])
-
-
 
         reward = self.get_ddp_reward(u)
 
@@ -94,4 +91,3 @@ class PendulumEnv(gym.Env):
         # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
 
         return cost
-

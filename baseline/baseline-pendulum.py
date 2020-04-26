@@ -5,7 +5,6 @@ import autograd.numpy as np
 import scipy.integrate
 import pdb
 
-
 solve_ivp = scipy.integrate.solve_ivp
 
 # pendulum parameters
@@ -23,13 +22,12 @@ noise = 0.5
 
 
 def pend_dynamics(t, x0):
-
     theta, thetadot = np.split(x0, 2)
 
     dtheta = thetadot
     dthetadot = -g / L * np.sin(theta)
 
-    dxdt = np.concatenate([dtheta, dthetadot], axis = -1)
+    dxdt = np.concatenate([dtheta, dthetadot], axis=-1)
 
     return dxdt
 
@@ -73,7 +71,6 @@ def get_dataset():
     timescale = 15  # this is the discretization per second, size of the trajectory is 45 in this case
     noise_std = 1
 
-
     # randomly sample inputs
     np.random.seed(seed)
 
@@ -84,7 +81,7 @@ def get_dataset():
         x_sample = get_trajectory(t_span, timescale, noise_std)
         x[s, :, :] = x_sample
 
-    test_size = int(np.ceil(num_samples/2))
+    test_size = int(np.ceil(num_samples / 2))
 
     test_data = x[:test_size, :, :]
     train_data = x[test_size:, :, :]
@@ -93,6 +90,5 @@ def get_dataset():
 
 
 if __name__ == "__main__":
-
     data = get_dataset()
     #
