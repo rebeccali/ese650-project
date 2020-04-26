@@ -1,28 +1,38 @@
 """ main file for quadrotor tracking with ddp controller """
 
-import params
-from ddp_functions import *
+from ddp.ddp_functions import *
+from ddp import ddp_params
 import matplotlib.pyplot as plt
-from pendulum import PendulumEnv
+import gym
+import environments
+import argparse
+import numpy as np
 
 import pdb
 
 if __name__ == "__main__":
+    # Parse Command Line Arguments
+    # e.g. python ddp_main.py --test
+    parser = argparse.ArgumentParser(description='Run DDP')
+    parser.add_argument('--test', action='store_true',
+                        help='Run as test')
+    args = parser.parse_args()
 
     ################################ system specific stuff ###################################
 
-    sys = PendulumEnv()
-
+    # sys = PendulumEnv()
+    sys = gym.make('DDP-Pendulum-v0')
     ################################################################################################
 
-    num_iter = params.num_iter
-    x = np.zeros([params.states, params.timesteps])
-    u = np.zeros([params.num_controllers, params.timesteps-1])
+    num_iter = ddp_params.num_iter
+    if args.test:
+        num_iter = 3
+    x = np.zeros([ddp_params.states, ddp_params.timesteps])
+    u = np.zeros([ddp_params.num_controllers, ddp_params.timesteps - 1])
 
     costvec = []
 
     for i in range(num_iter):
-
         u_opt = ddp(sys, x, u)
         x_new, cost = apply_control(sys, u_opt)
 
@@ -36,7 +46,7 @@ if __name__ == "__main__":
 
         # reset the system so that the next optimization step starts from the correct initial state
         sys.reset()
-        
+
         print('iteration: ', i, "cost: ", -cost)
 
     xf = sys.goal
@@ -48,12 +58,12 @@ if __name__ == "__main__":
 
     plt.subplot(211)
     plt.plot(x[0, :])
-    plt.plot(xf[0]*np.ones([params.timesteps, ]), 'r')
+    plt.plot(xf[0] * np.ones([ddp_params.timesteps, ]), 'r')
     plt.title('theta')
 
     plt.subplot(212)
     plt.plot(x[1, :])
-    plt.plot(xf[1] * np.ones([params.timesteps, ]), 'r')
+    plt.plot(xf[1] * np.ones([ddp_params.timesteps, ]), 'r')
     plt.title('thetadot')
 
     plt.figure(3)
@@ -64,4 +74,5 @@ if __name__ == "__main__":
     plt.plot(u[0, :].T)
     plt.title('u opt output')
 
-    plt.show()
+    if not args.test:
+        plt.show()
