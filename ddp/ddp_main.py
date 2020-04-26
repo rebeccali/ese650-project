@@ -4,10 +4,17 @@ import params
 from ddp_functions import *
 import matplotlib.pyplot as plt
 from pendulum import PendulumEnv
+import argparse
 
 import pdb
 
 if __name__ == "__main__":
+    # Do some argument parsing
+
+    parser = argparse.ArgumentParser(description='Run DDP')
+    parser.add_argument('--test', action='store_true',
+                        help='Run as test')
+    args = parser.parse_args()
 
     ################################ system specific stuff ###################################
 
@@ -16,6 +23,8 @@ if __name__ == "__main__":
     ################################################################################################
 
     num_iter = params.num_iter
+    if args.test:
+        num_iter = 1
     x = np.zeros([params.states, params.timesteps])
     u = np.zeros([params.num_controllers, params.timesteps-1])
 
@@ -36,7 +45,7 @@ if __name__ == "__main__":
 
         # reset the system so that the next optimization step starts from the correct initial state
         sys.reset()
-        
+
         print('iteration: ', i, "cost: ", -cost)
 
     xf = sys.goal
@@ -64,4 +73,5 @@ if __name__ == "__main__":
     plt.plot(u[0, :].T)
     plt.title('u opt output')
 
-    plt.show()
+    if not args.test:
+        plt.show()
