@@ -24,3 +24,9 @@ register(
     id='MyPendulum-v0',
     entry_point='myenv.pendulum:PendulumEnv',
 )
+
+
+register(
+    id='DDP-Pendulum-v0',
+    entry_point='myenv.ddp_pendulum:PendulumEnv',
+)
