@@ -20,6 +20,9 @@ class PendulumEnv(gym.Env):
 
         self.timesteps = pendulum_params.timesteps
 
+        self.num_iter = pendulum_params.num_iter
+
+
         self.Q_r_ddp = pendulum_params.Q_f_ddp
         self.Q_f_ddp = pendulum_params.Q_f_ddp
         self.R_ddp = pendulum_params.R_ddp

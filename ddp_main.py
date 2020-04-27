@@ -1,7 +1,6 @@
 """ main file for quadrotor tracking with ddp controller """
 
 from ddp.ddp_functions import *
-from ddp import ddp_params
 import matplotlib.pyplot as plt
 import gym
 import environments
@@ -23,11 +22,11 @@ if __name__ == "__main__":
     sys = gym.make('DDP-Pendulum-v0')
     ################################################################################################
 
-    num_iter = ddp_params.num_iter
+    num_iter = sys.num_iter
     if args.test:
         num_iter = 3
-    x = np.zeros([ddp_params.states, ddp_params.timesteps])
-    u = np.zeros([ddp_params.num_controllers, ddp_params.timesteps - 1])
+    x = np.zeros([sys.states, sys.timesteps])
+    u = np.zeros([sys.num_controllers, sys.timesteps - 1])
 
     costvec = []
 
