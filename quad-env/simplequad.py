@@ -20,7 +20,7 @@ class SimpleQuadEnv(gym.Env):
         self.state_limits = np.ones((params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
 
         self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
-        self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated 0 to 1
+        self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated "infinitely"
 
         # initialize state to zero
         self.state = np.zeros((params.states,))
@@ -50,7 +50,8 @@ class SimpleQuadEnv(gym.Env):
         u1 = f1 + f2 + f3 + f4  # thrust force
         u2 = f4 - f2  # roll force
         u3 = f1 - f3  # pitch force
-        u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment (TODO: WHERE DOES 0.05 come from??)
+        u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment 
+        # TODO : WHERE DOES 0.05 come from??)
 
         Jx = self.J[0, 0]
         Jy = self.J[1, 1]
@@ -102,6 +103,24 @@ class SimpleQuadEnv(gym.Env):
         # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
 
         return -cost
+    
+    def get_H(self):
+        dx = self.state[3:6]
+        dth = self.state[9:12]
+        z = self.state[2]
+        
+        trans = (1/2)*self.m*np.dot(dx,dx)
+        rot = (1/2)*(dth.T @ self.J) @ dth
+        
+        return trans + rot - self.m*self.g*z
+    
+    def get_pdot(self):
+        pdot = np.zeros((6,))
+        pdot[2] = self.m*self.g
+        return pdot
+
+    def get_qdot(self):
+        return np.concatenate((self.state[3:6],self.state[9:12]))
 
     def set_goal(self, goal):
         # takes a size (12,) numpy array representing the goal state against which rewards should be measured
