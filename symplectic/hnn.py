@@ -5,8 +5,8 @@
 import torch
 import numpy as np
 
-from nn_models import MLP
-from utils import rk4
+from symplectic.nn_models import MLP
+from symplectic.utils import rk4
 
 class HNN(torch.nn.Module):
     '''Learn arbitrary vector fields that are sums of conservative and solenoidal fields'''
@@ -69,7 +69,7 @@ class HNN(torch.nn.Module):
             M *= 1 - torch.eye(n) # clear diagonals
             M[::2] *= -1 # pattern of signs
             M[:,::2] *= -1
-    
+
             for i in range(n): # make asymmetric
                 for j in range(i+1, n):
                     M[i,j] *= -1

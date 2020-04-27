@@ -7,11 +7,11 @@
 import torch
 import numpy as np
 
-from nn_models import MLP
+from symplectic.nn_models import MLP
 
 class SymODEN_R(torch.nn.Module):
     '''
-    Architecture for input (q, p, u), 
+    Architecture for input (q, p, u),
     where q and p are tensors of size (bs, n) and u is a tensor of size (bs, 1)
     '''
     def __init__(self, input_dim, H_net=None, M_net=None, V_net=None, g_net=None, device=None,
@@ -89,7 +89,7 @@ class SymODEN_R(torch.nn.Module):
 
 class SymODEN_T(torch.nn.Module):
     '''
-    Architecture for input (cos q, sin q, q_dot, u), 
+    Architecture for input (cos q, sin q, q_dot, u),
     where q represent angles, a tensor of size (bs, n),
     cos q, sin q and q_dot are tensors of size (bs, n), and
     u is a tensor of size (bs, 1).
@@ -141,7 +141,7 @@ class SymODEN_T(torch.nn.Module):
                 dq, dp=  torch.chunk(self.H_net(x), 2, dim=1)
             else:
                 if self.structure:
-                    V_q = self.V_net(cos_q_sin_q)   
+                    V_q = self.V_net(cos_q_sin_q)
                     if self.input_dim == 1:
                         H = p * p * M_q_inv/ 2.0 + V_q
                     else:
@@ -152,7 +152,7 @@ class SymODEN_T(torch.nn.Module):
                 dH = torch.autograd.grad(H.sum(), cos_q_sin_q_p, create_graph=True)[0]
                 dHdcos_q, dHdsin_q, dHdp= torch.split(dH, [self.input_dim, self.input_dim, self.input_dim], dim=1)
                 g_q = self.g_net(cos_q_sin_q)
-                
+
                 if self.u_dim == 1:
                     # broadcast multiply when angle is more than 1
                     F = g_q * u
@@ -174,7 +174,7 @@ class SymODEN_T(torch.nn.Module):
                         dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((-sin_q * dq, cos_q * dq), dim=1)).sum(-1)
                 ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
                         + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
-            
+
 
             return torch.cat((-sin_q * dq, cos_q * dq, ddq, zero_vec), dim=1)
 
@@ -204,7 +204,7 @@ class SymODEN_T(torch.nn.Module):
 
 
         if self.structure:
-            V_q = self.V_net(cos_q_sin_q)   
+            V_q = self.V_net(cos_q_sin_q)
             if self.input_dim == 1:
                 H = p * p * M_q_inv/ 2.0 + V_q
             else:
@@ -219,7 +219,7 @@ class SymODEN_T(torch.nn.Module):
 
 class SymODEN_R1_T1(torch.nn.Module):
     '''
-    Architecture for the cartpole system (x, cos q, sin q, x_dot, q_dot, u), 
+    Architecture for the cartpole system (x, cos q, sin q, x_dot, q_dot, u),
     where x, cos q, sin q, x_dot, q_dot and u are all tensors of size (bs, 1)
     '''
     def __init__(self, input_dim, H_net=None, M_net=None, V_net=None, g_net=None,
@@ -266,7 +266,7 @@ class SymODEN_R1_T1(torch.nn.Module):
                 dx, dq, dp=  torch.split(self.H_net(y), [1, 1, 2], dim=1)
             else:
                 if self.structure:
-                    V_q = self.V_net(x_cos_q_sin_q)   
+                    V_q = self.V_net(x_cos_q_sin_q)
                     p_aug = torch.unsqueeze(p, dim=2)
                     H = torch.squeeze(torch.matmul(torch.transpose(p_aug, 1, 2), torch.matmul(M_q_inv, p_aug)))/2.0 + torch.squeeze(V_q)
                 else:
@@ -274,7 +274,7 @@ class SymODEN_R1_T1(torch.nn.Module):
                 dH = torch.autograd.grad(H.sum(), x_cos_q_sin_q_p, create_graph=True)[0]
                 dHdx, dHdcos_q, dHdsin_q, dHdp= torch.split(dH, [1, 1, 1, 2], dim=1)
                 g_q = self.g_net(x_cos_q_sin_q)
-                
+
                 if self.u_dim == 1:
                     # broadcast multiply when angle is more than 1
                     F = g_q * u
@@ -294,6 +294,6 @@ class SymODEN_R1_T1(torch.nn.Module):
                     dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((dx, -sin_q * dq, cos_q * dq), dim=1)).sum(-1)
             ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
                     + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
-        
+
 
             return torch.cat((dx, -sin_q * dq, cos_q * dq, ddq, zero_vec), dim=1)

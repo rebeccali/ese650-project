@@ -6,7 +6,7 @@
 
 import torch
 import numpy as np
-from utils import choose_nonlinearity
+from symplectic.utils import choose_nonlinearity
 
 
 class MLP(torch.nn.Module):
@@ -40,7 +40,7 @@ class PSD(torch.nn.Module):
 
             for l in [self.linear1, self.linear2, self.linear3]:
                 torch.nn.init.orthogonal_(l.weight) # use a principled initialization
-            
+
             self.nonlinearity = choose_nonlinearity(nonlinearity)
         else:
             assert diag_dim > 1
@@ -53,7 +53,7 @@ class PSD(torch.nn.Module):
 
             for l in [self.linear1, self.linear2, self.linear3, self.linear4]:
                 torch.nn.init.orthogonal_(l.weight) # use a principled initialization
-            
+
             self.nonlinearity = choose_nonlinearity(nonlinearity)
 
     def forward(self, q):
@@ -107,7 +107,7 @@ class DampMatrix(torch.nn.Module):
 
         for l in [self.linear1, self.linear2, self.linear3]:
             torch.nn.init.orthogonal_(l.weight) # use a principled initialization
-        
+
         self.nonlinearity = choose_nonlinearity(nonlinearity)
         self.device = device
 

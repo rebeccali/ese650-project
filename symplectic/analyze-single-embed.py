@@ -15,17 +15,17 @@ import scipy.integrate
 
 solve_ivp = scipy.integrate.solve_ivp
 
-EXPERIMENT_DIR = './experiment-single-embed/'
+EXPERIMENT_DIR = '../experiment_single_embed/'
 sys.path.append(EXPERIMENT_DIR)
 
-from data import get_dataset, arrange_data, get_field
-from nn_models import MLP, PSD
-from symoden import SymODEN_T
-from utils import L2_loss, from_pickle
+from experiment_single_embed.data import get_dataset, arrange_data, get_field
+from symplectic.nn_models import MLP, PSD
+from symplectic.symoden import SymODEN_T
+from symplectic.utils import L2_loss, from_pickle
 from torchdiffeq import odeint
 
 import gym
-import myenv
+import environments
 
 from gym import wrappers
 

@@ -5,13 +5,13 @@
 # https://github.com/greydanus/hamiltonian-nn
 
 import numpy as np
-from utils import to_pickle, from_pickle
+from symplectic.utils import to_pickle, from_pickle
 import gym
-import myenv
+import environments
 
-def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0., 
+def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
               verbose=False, u=0.0, env_name='MyPendulum-v0'):
-    
+
     gym_settings = locals()
     if verbose:
         print("Making a dataset of Pendulum observations.")
@@ -74,7 +74,7 @@ def arrange_data(x, t, num_points=2):
         else:
             x_stack.append(x[:, i:,:,:])
     x_stack = np.stack(x_stack, axis=1)
-    x_stack = np.reshape(x_stack, 
+    x_stack = np.reshape(x_stack,
                 (x.shape[0], num_points, -1, x.shape[3]))
     t_eval = t[0:num_points]
     return x_stack, t_eval
@@ -85,7 +85,7 @@ def get_field(xmin=-1.2, xmax=1.2, ymin=-1.2, ymax=1.2, gridsize=20, u=0):
     # meshgrid to get vector field
     b, a = np.meshgrid(np.linspace(xmin, xmax, gridsize), np.linspace(ymin, ymax, gridsize))
     ys = np.stack([b.flatten(), a.flatten()])
-    
+
     # get vector directions
     dydt = [dynamics_fn(None, y, u) for y in ys.T]
     dydt = np.stack(dydt).T

@@ -12,10 +12,10 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PARENT_DIR)
 
-from nn_models import MLP, PSD
-from symoden import SymODEN_T
-from data import get_dataset, arrange_data
-from utils import L2_loss, to_pickle
+from symplectic.nn_models import MLP, PSD
+from symplectic.symoden import SymODEN_T
+from experiment_single_embed.data import get_dataset, arrange_data
+from symplectic.utils import L2_loss, to_pickle
 
 import time
 
