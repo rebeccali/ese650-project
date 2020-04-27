@@ -20,11 +20,6 @@ register(
     entry_point='environments.acrobot:AcrobotEnv',
 )
 
-# register(
-#     id='MyPendulum-v0',
-#     entry_point='environments.my_pendulum:PendulumEnv',
-# )
-
 register(
     id='DDP-Pendulum-v0',
     entry_point='environments.pendulum:PendulumEnv',
