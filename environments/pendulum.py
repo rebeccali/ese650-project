@@ -138,10 +138,10 @@ class PendulumEnv(gym.Env):
         plt.plot(xf[1] * np.ones([self.timesteps, ]), 'r')
         plt.title('thetadot')
 
-        plt.figure(3)
+        plt.figure(2)
         plt.plot(costvec[:, 0, 0])
         plt.title('cost over iterations')
 
-        plt.figure(4)
+        plt.figure(3)
         plt.plot(u[0, :].T)
         plt.title('u opt output')

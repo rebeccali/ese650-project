@@ -10,17 +10,24 @@ J[2, 2] = 14.2e-3
 
 gr = 9.81  # gravity (m/s^2)
 states = 12  # number of states
-total_time = 3  # total time duration (s)
+num_controllers = 4
+total_time = 10  # total time duration (s)
 dt = 0.01  # discretization timestep
 
 timesteps = int(total_time / dt)  # total timesteps
 
-# ddp parameters
-num_iter = 200  # optimization iterations
-num_controllers = 4
+xf = np.zeros([states, 1])
 
+xf[0, 0] = 1.5 # xpos
+xf[1, 0] = 2 # ypos
+xf[2, 0] = 3 # zpos
+
+
+
+# ddp parameters
+num_iter = 100  # optimization iterations
 Q_r_ddp = np.diag([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10, 10, 10, 0.1, 0.1, 0.1])
 Q_f_ddp = np.diag([100, 100, 100, 10, 10, 10, 50, 50, 5, 5, 5, 5])
-
 R_ddp = 0.1 * np.eye(num_controllers)
-gamma = 1  # how much we account for du in updating the control during optimization
+gamma = 0.5  # how much we account for du in updating the control during optimization
+

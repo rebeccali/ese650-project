@@ -10,17 +10,25 @@ class SimpleQuadEnv(gym.Env):
 
     def __init__(self):
         self.dt = quadrotor_params.dt
+        self.timesteps = quadrotor_params.timesteps
+
         self.g = quadrotor_params.gr  # gravity
         self.J = quadrotor_params.J  # moment of inertia
         self.L = quadrotor_params.L  # length (m) from COM to thrust point of action
         self.m = quadrotor_params.m
-        self.Q_r_ddp = quadrotor_params.Q_r_ddp
-        self.Q_f_ddp = quadrotor_params.Q_f_ddp
-        self.R_ddp = quadrotor_params.R_ddp
+
         self.states = quadrotor_params.states
         self.num_controllers = quadrotor_params.num_controllers
 
-        self.state_limits = np.ones((quadrotor_params.states,), dtype=np.float32) * 10000  # initialize really large (no limits) for now
+        # ddp parameters
+        self.Q_r_ddp = quadrotor_params.Q_r_ddp
+        self.Q_f_ddp = quadrotor_params.Q_f_ddp
+        self.R_ddp = quadrotor_params.R_ddp
+        self.gamma = quadrotor_params.gamma
+        self.num_iter = quadrotor_params.num_iter
+
+        # state and control spaces
+        self.state_limits = np.ones((quadrotor_params.states,), dtype=np.float32) * 10000
 
         self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
         self.action_space = spaces.Box(-10000, 10000, (4,))  # all 4 motors can be actuated 0 to 1
@@ -29,8 +37,7 @@ class SimpleQuadEnv(gym.Env):
         self.state = np.zeros((quadrotor_params.states,))
         # state: x,y,z, dx,dy,dz, r,p,y, dr,dp,dy
 
-        self.goal = np.zeros((quadrotor_params.states,))  # TODO need to initialize this - maybe with
-        # initialization of the environment itself? Or maybe a separate function?
+        self.goal = quadrotor_params.xf
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
@@ -42,7 +49,7 @@ class SimpleQuadEnv(gym.Env):
 
     def step(self, u):
 
-        # assert self.action_space.contains(u)
+        assert self.action_space.contains(u)
 
         state = self.state
         f1 = u[0]
@@ -102,9 +109,7 @@ class SimpleQuadEnv(gym.Env):
 
         cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u.T.dot(R).dot(u)
 
-        # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
-
-        return -cost
+        return cost
     
     def get_H(self):
         dx = self.state[3:6]
@@ -125,31 +130,7 @@ class SimpleQuadEnv(gym.Env):
         return np.concatenate((self.state[3:6],self.state[9:12]))
 
     def set_goal(self, goal):
-        # takes a size (12,) numpy array representing the goal state against which rewards should be measured
-        # stores the goal state in the environment class variables
         self.goal = goal
-
-    def plot(self, state_history, control_history):
-        # this should definitely be replaced by an actual render function in line with the "viewer" stuff that
-        # gym provides. For now, just take in state history and control history, graph x,y,z,u. State history should be
-        # 12xtsteps numpy array, this just plots the first 3 rows
-
-        dt = self.dt
-        t = np.arange(0, control_history.size * dt, dt)
-
-        ax1 = plt.subplot(411)
-        ax1.plot(t, state_history[0, :])
-
-        ax2 = plt.subplot(412)
-        ax2.plot(t, state_history[1, :])
-
-        ax3 = plt.subplot(413)
-        ax3.plot(t, state_history[2, :])
-
-        ax4 = plt.subplot(414)
-        ax4.plot(t, control_history)
-
-        plt.show()
 
     def state_control_transition(self, x, u):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
@@ -232,9 +213,101 @@ class SimpleQuadEnv(gym.Env):
         B[10, 0] = L / Jy
         B[10, 2] = -L / Jy
 
-        B[11, 0] = -1 / (20 * Jz)
-        B[11, 1] = 1 / (20 * Jz)
-        B[11, 2] = -1 / (20 * Jz)
-        B[11, 3] = 1 / (20 * Jz)
+        B[11, 0] = -1 / Jz
+        B[11, 1] = 1 / Jz
+        B[11, 2] = -1 / Jz
+        B[11, 3] = 1 / Jz
+
+        # B[11, 0] = -1 / (20 * Jz)
+        # B[11, 1] = 1 / (20 * Jz)
+        # B[11, 2] = -1 / (20 * Jz)
+        # B[11, 3] = 1 / (20 * Jz)
 
         return A, B
+
+    def plot(self, xf, x, u, costvec):
+
+        # translational states
+        plt.figure(1)
+        plt.subplot(231)
+        plt.plot(x[0, :])
+        plt.plot(xf[0] * np.ones([self.timesteps, ]), 'r')
+        plt.title('x')
+
+        plt.subplot(232)
+        plt.plot(x[1, :])
+        plt.plot(xf[1] * np.ones([self.timesteps, ]), 'r')
+        plt.title('y')
+
+        plt.subplot(233)
+        plt.plot(x[2, :])
+        plt.plot(xf[2] * np.ones([self.timesteps, ]), 'r')
+        plt.title('z')
+
+        plt.subplot(234)
+        plt.plot(x[3, :])
+        plt.plot(xf[3] * np.ones([self.timesteps, ]), 'r')
+        plt.title('x dot')
+
+        plt.subplot(235)
+        plt.plot(x[4, :])
+        plt.plot(xf[4] * np.ones([self.timesteps, ]), 'r')
+        plt.title('y dot')
+
+        plt.subplot(236)
+        plt.plot(x[5, :])
+        plt.plot(xf[5] * np.ones([self.timesteps, ]), 'r')
+        plt.title('z dot')
+
+        # rotational states
+
+        plt.figure(2)
+        plt.subplot(231)
+        plt.plot(x[6, :])
+        plt.plot(xf[6] * np.ones([self.timesteps, ]), 'r')
+        plt.title('theta')
+
+        plt.subplot(232)
+        plt.plot(x[7, :])
+        plt.plot(xf[7] * np.ones([self.timesteps, ]), 'r')
+        plt.title('phi')
+
+        plt.subplot(233)
+        plt.plot(x[8, :])
+        plt.plot(xf[8] * np.ones([self.timesteps, ]), 'r')
+        plt.title('psi')
+
+        plt.subplot(234)
+        plt.plot(x[9, :])
+        plt.plot(xf[9] * np.ones([self.timesteps, ]), 'r')
+        plt.title('theta dot')
+
+        plt.subplot(235)
+        plt.plot(x[10, :])
+        plt.plot(xf[10] * np.ones([self.timesteps, ]), 'r')
+        plt.title('phi dot')
+
+        plt.subplot(236)
+        plt.plot(x[11, :])
+        plt.plot(xf[11] * np.ones([self.timesteps, ]), 'r')
+        plt.title('psi dot')
+
+        # cost
+        plt.figure(3)
+        plt.plot(costvec[:])
+        plt.title('cost over iterations')
+
+        # control
+        plt.figure(4)
+        plt.subplot(411)
+        plt.plot(u[0, :].T)
+        plt.title('u opt output')
+
+        plt.subplot(412)
+        plt.plot(u[1, :].T)
+
+        plt.subplot(413)
+        plt.plot(u[2, :].T)
+
+        plt.subplot(414)
+        plt.plot(u[3, :].T)

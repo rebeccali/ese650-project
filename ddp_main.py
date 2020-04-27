@@ -19,7 +19,9 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    sys = gym.make('DDP-Pendulum-v0')
+    # sys = gym.make('DDP-Pendulum-v0')
+    sys = gym.make('Simple-Quad-v0')
+
     ################################################################################################
 
     num_iter = sys.num_iter
@@ -39,7 +41,6 @@ if __name__ == "__main__":
         u = u_opt
 
         # reset the system so that the next optimization step starts from the correct initial state
-        sys.reset()
         costvec.append(-cost)
 
         # reset the system so that the next optimization step starts from the correct initial state
