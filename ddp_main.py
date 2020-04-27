@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    # sys = gym.make('DDP-Pendulum-v0')
+    sys = gym.make('DDP-Pendulum-v0')
     ################################################################################################
 
     num_iter = ddp_params.num_iter
@@ -73,9 +73,6 @@ if __name__ == "__main__":
     plt.plot(u[0, :].T)
     plt.title('u opt output')
 
-<<<<<<< HEAD:ddp/ddp_main.py
     plt.show()
-=======
     if not args.test:
         plt.show()
->>>>>>> master:ddp_main.py

@@ -1,31 +1,44 @@
-# Modified from OpenAI gym Pendulum-v0 task
-# https://github.com/openai/gym/blob/master/gym/envs/classic_control/pendulum.py
-
 import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-from os import path
-import scipy.integrate
+import matplotlib.pyplot as plt
+from environments import pendulum_params
+import pdb
 
-solve_ivp = scipy.integrate.solve_ivp
+
 
 class PendulumEnv(gym.Env):
-    metadata = {
-        'render.modes': ['human', 'rgb_array'],
-        'video.frames_per_second': 30
-    }
 
-    def __init__(self, g=10.0):
-        self.max_speed = 100.
-        self.max_torque = 5.
-        self.dt = .05
-        self.g = g
-        self.viewer = None
+    def __init__(self):
+        self.dt = pendulum_params.dt
+        self.g = pendulum_params.gr
+        self.m = pendulum_params.m
+        self.l = pendulum_params.L
+        self.b = pendulum_params.b
+        self.I = pendulum_params.I
+
+        self.Q_r_ddp = pendulum_params.Q_f_ddp
+        self.Q_f_ddp = pendulum_params.Q_f_ddp
+        self.R_ddp = pendulum_params.R_ddp
+        self.states = pendulum_params.states
+        self.num_controllers = pendulum_params.num_controllers
+
+        # set initial and final states
+        self.state = np.zeros((pendulum_params.states,))
+        self.goal = pendulum_params.xf
+
+        self.max_speed = pendulum_params.max_speed
+        self.max_torque = pendulum_params.max_torque
 
         high = np.array([1., 1., self.max_speed])
-        self.action_space = spaces.Box(low=-self.max_torque, high=self.max_torque, shape=(1,), dtype=np.float32)
-        self.observation_space = spaces.Box(low=-high, high=high, dtype=np.float32)
+        self.min_state = -high
+        self.max_state = high
+        self.min_action = [-self.max_torque]
+        self.max_action = [self.max_torque]
+
+        self.observation_space = spaces.Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
+        self.action_space = spaces.Box(np.array([-self.max_torque]), np.array([self.max_torque]))
 
         self.seed()
 
@@ -33,79 +46,75 @@ class PendulumEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def dynamics(self, t, y, u):
-        g = self.g
-        m = 1.
-        l = 1.
-
-        f = np.zeros_like(y)
-        f[0] = y[1]
-        f[1] = (-3 * g / (2 * l) * np.sin(y[0] + np.pi) + 3. / (m * l ** 2) * u)
-        return f
-
     def step(self, u):
+
         th, thdot = self.state  # th := theta
 
         g = self.g
-        m = 1.
-        l = 1.
+        m = self.m
+        l = self.l
+        b = self.b
         dt = self.dt
+        I = self.I
 
-        u = np.clip(u, -self.max_torque, self.max_torque)[0]
-        self.last_u = u  # for rendering
-        costs = angle_normalize(th) ** 2 + .1 * thdot ** 2 + .001 * (u ** 2)
+        u = u[0]
+        acceleration = -b / I * thdot - m * g * l / I * np.sin(th) + u / I
+        newth = th + thdot * dt
+        newthdot = thdot + acceleration * dt
 
-        ivp = solve_ivp(fun=lambda t, y: self.dynamics(t, y, u), t_span=[0, self.dt], y0=self.state)
-        self.state = ivp.y[:, -1]
+        self.state = np.array([newth, newthdot])
 
-        # newthdot = thdot + (-3*g/(2*l) * np.sin(th + np.pi) + 3./(m*l**2)*u) * dt
-        # newth = th + newthdot*dt
-        # newthdot = np.clip(newthdot, -self.max_speed, self.max_speed) #pylint: disable=E1111
+        reward = self.get_ddp_reward(u)
 
-        # self.state = np.array([newth, newthdot])
-        return self._get_obs(), -costs, False, {}
+        return self.state, reward
 
-    def reset(self):
-        high = np.array([np.pi, 1])
-        self.state = self.np_random.uniform(low=-high, high=high)
-        self.last_u = None
-        return self._get_obs()
+    def reset(self, reset_state=None):
+        # TODO: make this choose random values centered around hover
+        if reset_state is None:
+            self.state = np.zeros((pendulum_params.states,))
+        else:
+            self.state = reset_state
+        return self.state
 
-    def _get_obs(self):
-        theta, thetadot = self.state
-        return np.array([np.cos(theta), np.sin(theta), thetadot])
+    # def _get_obs(self):
+    #     theta, thetadot = self.state
+    #     return np.array([np.cos(theta), np.sin(theta), thetadot])
 
-    def render(self, mode='human'):
+    def get_ddp_reward(self, u):
 
-        if self.viewer is None:
-            from gym.envs.classic_control import rendering
-            self.viewer = rendering.Viewer(500, 500)
-            self.viewer.set_bounds(-2.2, 2.2, -2.2, 2.2)
-            rod = rendering.make_capsule(1, .2)
-            rod.set_color(.8, .3, .3)
-            self.pole_transform = rendering.Transform()
-            rod.add_attr(self.pole_transform)
-            self.viewer.add_geom(rod)
-            axle = rendering.make_circle(.05)
-            axle.set_color(0, 0, 0)
-            self.viewer.add_geom(axle)
-            fname = path.join(path.dirname(__file__), "assets/clockwise.png")
-            self.img = rendering.Image(fname, 1., 1.)
-            self.imgtrans = rendering.Transform()
-            self.img.add_attr(self.imgtrans)
+        Q = self.Q_r_ddp
+        R = self.R_ddp
 
-        self.viewer.add_onetime(self.img)
-        self.pole_transform.set_rotation(self.state[0] + np.pi / 2)
-        if self.last_u:
-            self.imgtrans.scale = (-self.last_u / 2, np.abs(self.last_u) / 2)
+        delta_x = self.state - np.squeeze(self.goal)
 
-        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+        cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u * R * u
 
-    def close(self):
-        if self.viewer:
-            self.viewer.close()
-            self.viewer = None
+        # cost = 0.5 * np.matmul(delta_x.T, np.matmul(Q, delta_x)) + 0.5 * np.matmul(u.T, np.matmul(R, u))
 
+        return cost
 
-def angle_normalize(x):
-    return (((x + np.pi) % (2 * np.pi)) - np.pi)
+    def state_control_transition(self, x, u):
+        """ takes in state and control trajectories and outputs the Jacobians for the linearized system
+        edit function to use with autograd when linearizing the neural network output REBECCA """
+
+        m = pendulum_params.m
+        L = pendulum_params.L
+        g = pendulum_params.gr
+        I = pendulum_params.I
+        b = pendulum_params.b
+        states = pendulum_params.states
+        controllers = pendulum_params.num_controllers
+
+        th = x[0]
+
+        A = np.zeros([states, states])
+        B = np.zeros([states, controllers])
+
+        A[0, 1] = 1
+        A[1, 0] = -m * g * L / I * np.cos(th)
+        A[1, 1] = -b / I
+
+        B[0, 0] = 0
+        B[1, 0] = 1 / I
+
+        return A, B
