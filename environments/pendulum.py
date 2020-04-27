@@ -10,7 +10,6 @@ import scipy.integrate
 
 solve_ivp = scipy.integrate.solve_ivp
 
-
 class PendulumEnv(gym.Env):
     metadata = {
         'render.modes': ['human', 'rgb_array'],

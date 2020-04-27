@@ -1,14 +1,13 @@
 import gym
 from gym import spaces
 from gym.utils import seeding
-
 import numpy as np
 import matplotlib.pyplot as plt
 from environments import pendulum_params
 import pdb
 
 
-# from open ai gym source:
+
 class PendulumEnv(gym.Env):
 
     def __init__(self):

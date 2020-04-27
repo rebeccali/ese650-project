@@ -20,8 +20,7 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    # sys = PendulumEnv()
-    sys = gym.make('DDP-Pendulum-v0')
+    # sys = gym.make('DDP-Pendulum-v0')
     ################################################################################################
 
     num_iter = ddp_params.num_iter
