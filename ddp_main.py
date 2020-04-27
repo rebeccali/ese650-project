@@ -53,26 +53,7 @@ if __name__ == "__main__":
     u = np.asarray(u)
     costvec = np.asarray(costvec)
 
-    plt.figure(1)
+    sys.plot(xf, x, u, costvec)
 
-    plt.subplot(211)
-    plt.plot(x[0, :])
-    plt.plot(xf[0] * np.ones([ddp_params.timesteps, ]), 'r')
-    plt.title('theta')
-
-    plt.subplot(212)
-    plt.plot(x[1, :])
-    plt.plot(xf[1] * np.ones([ddp_params.timesteps, ]), 'r')
-    plt.title('thetadot')
-
-    plt.figure(3)
-    plt.plot(costvec[:, 0, 0])
-    plt.title('cost over iterations')
-
-    plt.figure(4)
-    plt.plot(u[0, :].T)
-    plt.title('u opt output')
-
-    plt.show()
     if not args.test:
         plt.show()

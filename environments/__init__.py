@@ -20,6 +20,7 @@ register(
     entry_point='environments.acrobot:AcrobotEnv',
 )
 
+# runs with pendulum_params.py
 register(
     id='DDP-Pendulum-v0',
     entry_point='environments.pendulum:PendulumEnv',

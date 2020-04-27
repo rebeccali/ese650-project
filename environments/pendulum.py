@@ -18,9 +18,12 @@ class PendulumEnv(gym.Env):
         self.b = pendulum_params.b
         self.I = pendulum_params.I
 
+        self.timesteps = pendulum_params.timesteps
+
         self.Q_r_ddp = pendulum_params.Q_f_ddp
         self.Q_f_ddp = pendulum_params.Q_f_ddp
         self.R_ddp = pendulum_params.R_ddp
+        self.gamma = pendulum_params.gamma
         self.states = pendulum_params.states
         self.num_controllers = pendulum_params.num_controllers
 
@@ -118,3 +121,24 @@ class PendulumEnv(gym.Env):
         B[1, 0] = 1 / I
 
         return A, B
+
+    def plot(self,xf, x, u, costvec):
+
+        plt.figure(1)
+        plt.subplot(211)
+        plt.plot(x[0, :])
+        plt.plot(xf[0] * np.ones([self.timesteps, ]), 'r')
+        plt.title('theta')
+
+        plt.subplot(212)
+        plt.plot(x[1, :])
+        plt.plot(xf[1] * np.ones([self.timesteps, ]), 'r')
+        plt.title('thetadot')
+
+        plt.figure(3)
+        plt.plot(costvec[:, 0, 0])
+        plt.title('cost over iterations')
+
+        plt.figure(4)
+        plt.plot(u[0, :].T)
+        plt.title('u opt output')

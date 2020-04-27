@@ -1,5 +1,4 @@
 import numpy as np
-from ddp import ddp_params
 import pdb
 
 
@@ -50,8 +49,10 @@ def ddp(sys, x, u):
 
     states = sys.states
     controllers = sys.num_controllers
-    timesteps = ddp_params.timesteps
-    dt = ddp_params.dt
+
+    # these come from teh params file of the system
+    timesteps = sys.timesteps
+    dt = sys.dt
 
     xf = np.squeeze(sys.goal)
 
@@ -106,9 +107,6 @@ def ddp(sys, x, u):
                                                 Pk[:, :, t], V[:, t + 1], Vx[:, t + 1], Vxx[:, :, t + 1],
                                                 A[:, :, t], B[:, :, t])
 
-        # Lk[:, :, t] = -1 * np.linalg.solve(Quu, Qxu.T)
-        # lk[:, t] = -1 * np.linalg.solve(Quu, Qu)
-
         Lk[:, :, t] = -1 * np.linalg.inv(Quu).dot(Qxu.T)
         lk[:, t] = -1 * np.linalg.inv(Quu).dot(Qu)
 
@@ -119,7 +117,7 @@ def ddp(sys, x, u):
     dx = np.zeros([states, 1])
 
     for t in range(timesteps - 1):
-        gamma = ddp_params.gamma
+        gamma = sys.gamma
 
         du = lk[:, t] + np.squeeze(Lk[:, :, t].dot(dx))
         dx = np.squeeze(A[:, :, t].dot(dx)) + B[:, :, t].dot(du)
@@ -134,7 +132,7 @@ def ddp(sys, x, u):
 def apply_control(sys, u_opt):
     """ evaluates the controlled system trajectory """
 
-    timesteps = ddp_params.timesteps
+    timesteps = sys.timesteps
     states = sys.states
 
     x_new = np.zeros([states, timesteps])
@@ -151,3 +149,6 @@ def apply_control(sys, u_opt):
         cost += c1
 
     return x_new, -cost
+
+
+
