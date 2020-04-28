@@ -34,7 +34,9 @@ def get_args():
             'fig_dir': './figures',
             'num_points': 2,  # number of evaluation points by ode solver, including initial point
             'gpu': 0,
-            'solver': 'rk4'}
+            'solver': 'rk4',
+            'env': 'MyPendulum-v0' # Name of the gym environment
+            }
 
 
 class ObjectView(object):

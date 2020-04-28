@@ -121,20 +121,20 @@ def get_qp(x):
     return np.stack((q, p), axis=1)
 
 
-def simulate_control(device, symoden_ode_struct_model):
+def simulate_control(device, symoden_ode_struct_model, args):
     # %% [markdown]
     # ## Energy-based control
     # The following code saves the rendering as a mp4 video and as a GIF at the same time
     # %%
-    # time info for simualtion
-    time_step = 200;
+    # time info for simulation
+    time_step = 200
     n_eval = 200
     t_span = [0, time_step * 0.05]
     t_eval = torch.linspace(t_span[0], t_span[1], n_eval)
-    # angle info for simuation
+    # angle info for simulation
     init_angle = 3.14
     u0 = 0.0
-    env = gym.make('MyPendulum-v0')
+    env = gym.make(args.env)
     # record video
     env = gym.wrappers.Monitor(env, './videos/' + 'single-embed' + '/',
                                force=True)  # , video_callable=lambda x: True, force=True
@@ -177,9 +177,9 @@ def simulate_control(device, symoden_ode_struct_model):
     return t_eval, y_traj
 
 
-def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model, device):
+def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model, device, args):
     # time info for simualtion
-    time_step = 100;
+    time_step = 100
     n_eval = 100
     t_span = [0, time_step * 0.05]
     t_linspace_true = np.linspace(t_span[0], time_step, time_step) * 0.05
@@ -195,7 +195,7 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
     base_ivp = integrate_model(base_ode_model, t_span, y0_u, device=device, **kwargs)
     symoden_ivp = integrate_model(symoden_ode_model, t_span, y0_u, device=device, **kwargs)
     symoden_struct_ivp = integrate_model(symoden_ode_struct_model, t_span, y0_u, device=device, **kwargs)
-    env = gym.make('MyPendulum-v0')
+    env = gym.make(args.env)
     env.reset()
     env.state = np.array([init_angle, 0.0], dtype=np.float32)
     obs = env._get_obs()
@@ -203,9 +203,9 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
     for _ in range(time_step):
         obs_list.append(obs)
         obs, _, _, _ = env.step([u0])
-    true_ivp = np.stack(obs_list, 1)
-    true_ivp = np.concatenate((true_ivp, np.zeros((1, time_step))), axis=0)
-    return base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp
+    true_ivp_y = np.stack(obs_list, 1)
+    true_ivp_y = np.concatenate((true_ivp_y, np.zeros((1, time_step))), axis=0)
+    return base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp_y
 
 
 def get_all_models(args, device):
