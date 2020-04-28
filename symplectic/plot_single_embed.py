@@ -117,3 +117,42 @@ def plot_sin_cos_sanity_check(base_ivp, naive_ivp, symoden_ivp, symoden_struct_i
     plt.plot(t_linspace_model, symoden_struct_1, 'b', label='SymODEN')
     plt.title(r'Sanity check of $\sin^2 q + \cos^2 q$')
     plt.legend(fontsize=10)
+
+
+def plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, true_ivp_y, DPI=100):
+    """ Plot true IVP vs the model IVP
+        model_ivp is the ivp solution, and we use model_ivp.y as the predicted values
+        true_ivp_y is the solution already in the array form (sxn), where s is the number of states
+        and n is the number of timesteps.
+    """
+    # Quick sanity check
+    assert base_ivp.y.shape == true_ivp_y.shape, 'model IVP shape does not match true ivp - is this the right environment?'
+    fig = plt.figure(figsize=(5, 5), dpi=DPI)
+    # plt.subplots()
+
+    def plot_ivp(model_ivp, name):
+        model_cos_q = model_ivp.y[0, :]
+        model_sin_q = model_ivp.y[1, :]
+        model_qdot = model_ivp.y[2, :]
+        model_q = np.arctan2(model_sin_q, model_cos_q)
+        plt.plot(model_q, model_qdot, '--', label=name)
+
+    plot_ivp(base_ivp, 'Baseline Model')
+    plot_ivp(naive_ivp, 'Naive Model')
+    plot_ivp(symoden_ivp, 'SympODEN Model')
+    plot_ivp(symoden_struct_ivp, 'Structured SympODEN Model')
+
+
+    true_cos_q = true_ivp_y[0, :]
+    true_sin_q = true_ivp_y[1, :]
+    true_qdot = true_ivp_y[2, :]
+
+    # Back out q from cosine and sine
+    true_q = np.arctan2(true_sin_q, true_cos_q)
+
+    # Do x-y plot
+    plt.plot(true_q, true_qdot, label='True Simulation')
+    plt.title(r'Models vs True Phase Trajectory')
+    plt.xlabel('$q$')
+    plt.ylabel('$\dot{q}$')
+    plt.legend(fontsize=10)

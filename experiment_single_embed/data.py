@@ -61,6 +61,7 @@ def get_dataset(seed=0, samples=50, test_split=0.5, save_dir=None, us=[0], rad=F
         data = split_data
         data['t'] = tspan
 
+        # print('Saving dataset to {}.'.format(path))
         # to_pickle(data, path)
     return data
 

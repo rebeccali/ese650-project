@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 from symplectic.analysis import simulate_control, simulate_models, get_all_models, get_prediction_error
 from symplectic.plot_single_embed import plot_control, plot_energy_variation, plot_learned_functions, \
-    plot_sin_cos_sanity_check
+    plot_sin_cos_sanity_check, plot_model_vs_true_ivp
 
 EXPERIMENT_DIR = '../experiment_single_embed/'
 sys.path.append(EXPERIMENT_DIR)
@@ -48,22 +48,20 @@ def main(args):
     # %%
     base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model = get_all_models(args, device)
     get_prediction_error(args, base_ode_model, device, naive_ode_model, symoden_ode_model, symoden_ode_struct_model)
-    base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp = simulate_models(
-        base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model, device)
-    # true_qp = get_qp(true_ivp.T)
-    # naive_qp = get_qp(naive_ivp.y.T)
-    # base_qp = get_qp(base_ivp.y.T)
-    # symoden_qp = get_qp(symoden_ivp.y.T)
-    # symoden_struct_qp = get_qp(symoden_struct_ivp.y.T)
-    # %%
-    # comparing true trajectory and the estimated trajectory
-    # plt.plot(t_linspace_model, symoden_struct_ivp.y[1,:], 'r')
-    # plt.plot(t_linspace_true, true_ivp[1,:], 'g')
+    base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp_y = simulate_models(
+        base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model, device, args)
+
+    # Plot Models
     plot_sin_cos_sanity_check(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model)
     plot_learned_functions(symoden_ode_struct_model, device, DPI=DPI)
-    plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp)
-    t_eval, y_traj = simulate_control(device, symoden_ode_struct_model)
+    plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp_y)
+
+    # Plot control
+    t_eval, y_traj = simulate_control(device, symoden_ode_struct_model, args)
     plot_control(t_eval, y_traj, args, DPI=DPI, FORMAT=FORMAT)
+
+    # Plot trajectory
+    plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, true_ivp_y, DPI=DPI)
     plt.show()
 
 
