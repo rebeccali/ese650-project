@@ -3,7 +3,7 @@ import torch
 from matplotlib import pyplot as plt
 
 
-def plot_control(t_eval, y_traj):
+def plot_control(t_eval, y_traj, args, DPI=100, FORMAT='pdf'):
     # %% [markdown]
     # ## Plot control results
     # %%
@@ -48,7 +48,7 @@ def plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_
     plt.title('Energy Variation along each trajectory')
 
 
-def plot_learned_functions(symoden_ode_struct_model, device):
+def plot_learned_functions(symoden_ode_struct_model, device, DPI=100):
     # %% [markdown]
     # The Naive Baseline doesn't respect the geometry
     # %% [markdown]

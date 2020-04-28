@@ -1,5 +1,7 @@
 import gym
+import gym.wrappers
 import numpy as np
+from scipy.integrate import solve_ivp
 import torch
 from torchdiffeq import odeint
 
@@ -174,7 +176,7 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
     return base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp
 
 
-def get_all_models(device):
+def get_all_models(args, device):
     naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, damping=False,
                                                  num_points=args.num_points, device=device)
     base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, damping=False,
@@ -213,7 +215,7 @@ def get_model_parm_nums(model):
     return total
 
 
-def get_prediction_error(base_ode_model, device, naive_ode_model, symoden_ode_model, symoden_ode_struct_model):
+def get_prediction_error(args, base_ode_model, device, naive_ode_model, symoden_ode_model, symoden_ode_struct_model):
     # %% [markdown]
     # ## Dataset to get prediction error
     # %%
