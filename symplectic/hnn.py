@@ -9,7 +9,7 @@ from symplectic.nn_models import MLP
 from symplectic.utils import rk4
 
 class HNN(torch.nn.Module):
-    '''Learn arbitrary vector fields that are sums of conservative and solenoidal fields'''
+    """Learn arbitrary vector fields that are sums of conservative and solenoidal fields"""
     def __init__(self, input_dim, differentiable_model, field_type='solenoidal',
                     baseline=False, assume_canonical_coords=True):
         super(HNN, self).__init__()
@@ -32,11 +32,11 @@ class HNN(torch.nn.Module):
         return rk4(fun=self.time_derivative, y0=x, t=0, dt=dt)
 
     def time_derivative(self, x, t=None, separate_fields=False):
-        '''NEURAL ODE-STLE VECTOR FIELD'''
+        """NEURAL ODE-STLE VECTOR FIELD"""
         if self.baseline:
             return self.differentiable_model(x)
 
-        '''NEURAL HAMILTONIAN-STLE VECTOR FIELD'''
+        """NEURAL HAMILTONIAN-STLE VECTOR FIELD"""
         F1, F2 = self.forward(x) # traditional forward pass
 
         conservative_field = torch.zeros_like(x) # start out with both components set to 0
@@ -64,7 +64,7 @@ class HNN(torch.nn.Module):
             M = torch.eye(n)
             M = torch.cat([M[n//2:], -M[:n//2]])
         else:
-            '''Constructs the Levi-Civita permutation tensor'''
+            """Constructs the Levi-Civita permutation tensor"""
             M = torch.ones(n,n) # matrix of ones
             M *= 1 - torch.eye(n) # clear diagonals
             M[::2] *= -1 # pattern of signs

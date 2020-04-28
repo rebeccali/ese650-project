@@ -25,13 +25,14 @@ FORMAT = 'pdf'
 
 
 def get_args():
-    return {'num_angle': 1,
-            'nonlinearity': 'tanh',
-            'name': 'pend',
+    """ Arguments to fetch a model. Must match existing trained models exactly."""
+    return {'num_angle': 1, # Number of generalized coordinates
+            'nonlinearity': 'tanh',  # NN nonlinearity
+            'name': 'pend',  # name of environment
             'seed': 0,
             'save_dir': './{}'.format(EXPERIMENT_DIR),
             'fig_dir': './figures',
-            'num_points': 2,
+            'num_points': 2,  # number of evaluation points by ode solver, including initial point
             'gpu': 0,
             'solver': 'rk4'}
 

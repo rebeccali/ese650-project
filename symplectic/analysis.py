@@ -11,31 +11,55 @@ from symplectic.symoden import SymODEN_T
 from symplectic.utils import from_pickle
 
 
-def get_model(args, baseline, structure, naive, damping, num_points, device):
-    M_net = PSD(2 * args.num_angle, 300, args.num_angle).to(device)
-    g_net = MLP(2 * args.num_angle, 200, args.num_angle).to(device)
+def get_model(args, baseline, structure, naive, device):
+    """ Gets a model from save. Must be trained first, so these must match the existing model.
+        arguements:
+        args(object): should match args in analyze-single-embed
+        baseline(bool): Whether it is the baseline model or not
+        structure(bool): Whether it is the structure model or not
+        naive(bool): Whether it is the naive model or not
+        device(): cuda device to use
+        Return:
+            returns the neural network model, as well as the stats of the trained model.
+    """
+
+    M_input_dim = 2 * args.num_angle
+    M_output_dim = args.num_angle
+    M_hidden_dim = 300
+    M_net = PSD(M_input_dim, M_hidden_dim, M_output_dim).to(device)
+
+    g_input_dim = 2 * args.num_angle
+    g_output_dim = args.num_angle
+    g_hidden_dim = 200
+    g_net = MLP(g_input_dim, g_hidden_dim, g_output_dim).to(device)
     if not structure:
         if naive and baseline:
             raise RuntimeError('argument *baseline* and *naive* cannot both be true')
         elif naive:
             input_dim = 4 * args.num_angle
             output_dim = 3 * args.num_angle
-            nn_model = MLP(input_dim, 800, output_dim, args.nonlinearity).to(device)
+            hidden_dim = 800
+            nn_model = MLP(input_dim, hidden_dim, output_dim, args.nonlinearity).to(device)
             model = SymODEN_T(args.num_angle, H_net=nn_model, device=device, baseline=baseline, naive=naive)
         elif baseline:
             input_dim = 4 * args.num_angle
             output_dim = 2 * args.num_angle
-            nn_model = MLP(input_dim, 600, output_dim, args.nonlinearity).to(device)
+            hidden_dim = 600
+            nn_model = MLP(input_dim, hidden_dim, output_dim, args.nonlinearity).to(device)
             model = SymODEN_T(args.num_angle, H_net=nn_model, M_net=M_net, device=device, baseline=baseline,
                               naive=naive)
         else:
             input_dim = 3 * args.num_angle
             output_dim = 1
-            nn_model = MLP(input_dim, 500, output_dim, args.nonlinearity).to(device)
+            hidden_dim = 500
+            nn_model = MLP(input_dim, hidden_dim, output_dim, args.nonlinearity).to(device)
             model = SymODEN_T(args.num_angle, H_net=nn_model, M_net=M_net, g_net=g_net, device=device,
                               baseline=baseline, naive=naive)
     elif structure and not baseline and not naive:
-        V_net = MLP(2 * args.num_angle, 50, 1).to(device)
+        input_dim = 2 * args.num_angle
+        output_dim = 1
+        hidden_dim = 50
+        V_net = MLP(input_dim, hidden_dim, output_dim).to(device)
         model = SymODEN_T(args.num_angle, M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=baseline,
                           structure=True).to(device)
     else:
@@ -53,6 +77,14 @@ def get_model(args, baseline, structure, naive, damping, num_points, device):
     path = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
     stats = from_pickle(path)
     return model, stats
+
+
+def get_one_step_prediction(model, x0, ts):
+    """ Given a model, and an initial condition, predict for all timesteps ts in the future.
+        returns x_hats
+    """
+    x_hats = odeint(model, x0, ts, method='rk4')
+    return x_hats
 
 
 def get_pred_loss(pred_x, pred_t_eval, model, device):
@@ -177,14 +209,10 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
 
 
 def get_all_models(args, device):
-    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, damping=False,
-                                                 num_points=args.num_points, device=device)
-    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, damping=False,
-                                               num_points=args.num_points, device=device)
-    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, damping=False,
-                                                     num_points=args.num_points, device=device)
+    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, device=device)
+    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device)
+    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device)
     symoden_ode_struct_model, symoden_ode_struct_stats = get_model(args, baseline=False, structure=True, naive=False,
-                                                                   damping=False, num_points=args.num_points,
                                                                    device=device)
     print('Naive Baseline contains {} parameters'.format(get_model_parm_nums(naive_ode_model)))
     print('Final trajectory train loss {:.4e} +/- {:.4e}\nFinal trajectory test loss {:.4e} +/- {:.4e}'

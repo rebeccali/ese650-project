@@ -10,7 +10,7 @@ from symplectic.utils import choose_nonlinearity
 
 
 class MLP(torch.nn.Module):
-    '''Just a MLP'''
+    """Just a MLP (Multilayer perceptron)"""
     def __init__(self, input_dim, hidden_dim, output_dim, nonlinearity='tanh', bias_bool=True):
         super(MLP, self).__init__()
         self.linear1 = torch.nn.Linear(input_dim, hidden_dim)
@@ -29,7 +29,7 @@ class MLP(torch.nn.Module):
 
 
 class PSD(torch.nn.Module):
-    '''A Neural Net which outputs a positive semi-definite matrix'''
+    """A Neural Net which outputs a positive semi-definite matrix"""
     def __init__(self, input_dim, hidden_dim, diag_dim, nonlinearity='tanh'):
         super(PSD, self).__init__()
         self.diag_dim = diag_dim
@@ -85,7 +85,7 @@ class PSD(torch.nn.Module):
 
 
 class MatrixNet(torch.nn.Module):
-    ''' a neural net which outputs a matrix'''
+    """ a neural net which outputs a matrix"""
     def __init__(self, input_dim, hidden_dim, output_dim, nonlinearity='tanh', bias_bool=True, shape=(2,2)):
         super(MatrixNet, self).__init__()
         self.mlp = MLP(input_dim, hidden_dim, output_dim, nonlinearity, bias_bool)
@@ -97,7 +97,7 @@ class MatrixNet(torch.nn.Module):
 
 
 class DampMatrix(torch.nn.Module):
-    '''(not used in the paper) A Neural Net which outputs a 2*2 damping matrix'''
+    """(not used in the paper) A Neural Net which outputs a 2*2 damping matrix"""
     def __init__(self, input_dim, hidden_dim, diag_dim, device, nonlinearity='tanh'):
         super(DampMatrix, self).__init__()
         assert diag_dim > 1

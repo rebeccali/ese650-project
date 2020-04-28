@@ -65,7 +65,7 @@ def get_dataset(seed=0, samples=50, test_split=0.5, save_dir=None, us=[0], rad=F
     return data
 
 def arrange_data(x, t, num_points=2):
-    '''Arrange data to feed into neural ODE in small chunks'''
+    """Arrange data to feed into neural ODE in small chunks"""
     assert num_points>=2 and num_points<=len(t)
     x_stack = []
     for i in range(num_points):

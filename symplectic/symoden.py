@@ -10,10 +10,10 @@ import numpy as np
 from symplectic.nn_models import MLP
 
 class SymODEN_R(torch.nn.Module):
-    '''
+    """
     Architecture for input (q, p, u),
     where q and p are tensors of size (bs, n) and u is a tensor of size (bs, 1)
-    '''
+    """
     def __init__(self, input_dim, H_net=None, M_net=None, V_net=None, g_net=None, device=None,
                     assume_canonical_coords=True, baseline=False, structure=False):
         super(SymODEN_R, self).__init__()
@@ -75,7 +75,7 @@ class SymODEN_R(torch.nn.Module):
             M = torch.eye(n)
             M = torch.cat([M[n//2:], -M[:n//2]])
         else:
-            '''Constructs the Levi-Civita permutation tensor'''
+            """Constructs the Levi-Civita permutation tensor"""
             M = torch.ones(n,n) # matrix of ones
             M *= 1 - torch.eye(n) # clear diagonals
             M[::2] *= -1 # pattern of signs
@@ -88,12 +88,12 @@ class SymODEN_R(torch.nn.Module):
 
 
 class SymODEN_T(torch.nn.Module):
-    '''
+    """
     Architecture for input (cos q, sin q, q_dot, u),
     where q represent angles, a tensor of size (bs, n),
     cos q, sin q and q_dot are tensors of size (bs, n), and
     u is a tensor of size (bs, 1).
-    '''
+    """
     def __init__(self, input_dim, H_net=None, M_net=None, V_net=None, g_net=None,
             device=None, baseline=False, structure=False, naive=False, u_dim=1):
         super(SymODEN_T, self).__init__()
@@ -218,10 +218,10 @@ class SymODEN_T(torch.nn.Module):
 
 
 class SymODEN_R1_T1(torch.nn.Module):
-    '''
+    """
     Architecture for the cartpole system (x, cos q, sin q, x_dot, q_dot, u),
     where x, cos q, sin q, x_dot, q_dot and u are all tensors of size (bs, 1)
-    '''
+    """
     def __init__(self, input_dim, H_net=None, M_net=None, V_net=None, g_net=None,
             device=None, baseline=False, structure=False, naive=False, u_dim=1):
         super(SymODEN_R1_T1, self).__init__()
