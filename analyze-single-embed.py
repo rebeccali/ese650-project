@@ -16,7 +16,7 @@ from symplectic.analysis import simulate_control, simulate_models, get_all_model
 from symplectic.plot_single_embed import plot_control, plot_energy_variation, plot_learned_functions, \
     plot_sin_cos_sanity_check, plot_model_vs_true_ivp
 
-EXPERIMENT_DIR = '../experiment_single_embed/'
+EXPERIMENT_DIR = 'experiment_single_embed/'
 sys.path.append(EXPERIMENT_DIR)
 
 # %%
