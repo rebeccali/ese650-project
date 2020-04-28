@@ -34,6 +34,11 @@ register(
 )
 
 register(
+    id='MPC-DDP-Pendulum-v0',
+    entry_point='environments.pendulum_mpc:PendulumEnv',
+)
+
+register(
     id='Simple-Quad-v0',
     entry_point='environments.simplequad:SimpleQuadEnv',
 )
