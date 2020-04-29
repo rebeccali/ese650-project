@@ -25,30 +25,60 @@ if __name__ == "__main__":
 
     ################################################################################################
 
+    ################################ MPC stufff ####################################################
+
+    current_time = 0
+    index = 0
+
+    ################################################################################################
+
     num_iter = sys.num_iter
 
     if args.test:
         num_iter = 3
-    x = np.zeros([sys.states, sys.timesteps])
-    u = np.zeros([sys.num_controllers, sys.timesteps - 1])
+
+    x = np.zeros([sys.states, int(sys.total_time/sys.dt)])
+    x[:, 0] = sys.state # set initial state
+
+    u = np.zeros([sys.num_controllers, int(sys.total_time/sys.dt) - 1])
+
+    x_ddp = np.zeros([sys.states, int(sys.timesteps)])
+    u_ddp = np.zeros([sys.num_controllers, int(sys.timesteps)])
 
     costvec = []
 
-    for i in range(num_iter):
-        u_opt = ddp(sys, x, u)
-        x_new, cost = apply_control(sys, u_opt)
+    x1 = sys.state # set intial state
 
-        # update state and control trajectories
-        x = x_new
-        u = u_opt
+    while current_time < (sys.total_time-sys.dt):
 
-        # reset the system so that the next optimization step starts from the correct initial state
-        costvec.append(-cost)
+        x_ddp = np.zeros([sys.states, int(sys.timesteps)])
+        x_ddp[:, 0] = x1
+        u_ddp = np.zeros([sys.num_controllers, int(sys.timesteps)])
 
-        # reset the system so that the next optimization step starts from the correct initial state
-        sys.reset()
+        for i in range(num_iter):
+            u_opt = ddp(sys, x_ddp, u_ddp)
+            x_new, cost = apply_control(sys, u_opt)
 
-        print('iteration: ', i, "cost: ", -cost)
+            # update state and control trajectories
+            x_ddp = x_new
+            u_ddp = u_opt
+
+            sys.reset(reset_state=x1)
+
+        # apply first control from the sequence and step one timestep
+        x1, c1 = sys.step(u_ddp[:, 0])
+
+        # save the current state and control and reset intial state for the system
+        x[:, index + 1] = x1
+        u[:, index] = u_ddp[:, 0]
+        costvec.append(-c1)
+
+        sys.reset(reset_state=x1)
+
+        current_time += sys.dt
+        index += 1
+
+        print('iteration: ', index, "cost: ", -c1)
 
     xf = sys.goal
     x = np.asarray(x)

@@ -17,9 +17,9 @@ class PendulumEnv(gym.Env):
         self.I = pendulum_mpc_params.I
 
         self.timesteps = pendulum_mpc_params.timesteps
+        self.total_time = pendulum_mpc_params.total_time
 
         self.num_iter = pendulum_mpc_params.num_iter
-
 
         self.Q_r_ddp = pendulum_mpc_params.Q_f_ddp
         self.Q_f_ddp = pendulum_mpc_params.Q_f_ddp
@@ -30,6 +30,7 @@ class PendulumEnv(gym.Env):
 
         # set initial and final states
         self.state = np.zeros((pendulum_mpc_params.states,))
+
         self.goal = pendulum_mpc_params.xf
 
         self.max_speed = pendulum_mpc_params.max_speed
@@ -75,7 +76,7 @@ class PendulumEnv(gym.Env):
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
         if reset_state is None:
-            self.state = np.zeros((pendulum_params.states,))
+            self.state = np.zeros((pendulum_mpc_params.states,))
         else:
             self.state = reset_state
         return self.state
@@ -101,13 +102,13 @@ class PendulumEnv(gym.Env):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
         edit function to use with autograd when linearizing the neural network output REBECCA """
 
-        m = pendulum_params.m
-        L = pendulum_params.L
-        g = pendulum_params.gr
-        I = pendulum_params.I
-        b = pendulum_params.b
-        states = pendulum_params.states
-        controllers = pendulum_params.num_controllers
+        m = pendulum_mpc_params.m
+        L = pendulum_mpc_params.L
+        g = pendulum_mpc_params.gr
+        I = pendulum_mpc_params.I
+        b = pendulum_mpc_params.b
+        states = pendulum_mpc_params.states
+        controllers = pendulum_mpc_params.num_controllers
 
         th = x[0]
 
@@ -128,12 +129,12 @@ class PendulumEnv(gym.Env):
         plt.figure(1)
         plt.subplot(211)
         plt.plot(x[0, :])
-        plt.plot(xf[0] * np.ones([self.timesteps, ]), 'r')
+        plt.plot(xf[0] * np.ones([x.shape[1], ]), 'r')
         plt.title('theta')
 
         plt.subplot(212)
         plt.plot(x[1, :])
-        plt.plot(xf[1] * np.ones([self.timesteps, ]), 'r')
+        plt.plot(xf[1] * np.ones([x.shape[1], ]), 'r')
         plt.title('thetadot')
 
         plt.figure(2)
