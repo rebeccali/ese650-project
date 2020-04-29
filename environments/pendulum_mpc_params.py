@@ -18,7 +18,7 @@ dt = 0.01  # discretization timestep
 
 # MPC prediction time horizon for MPC (split into 10 intervals)
 total_timesteps = int(total_time / dt)
-timesteps = int(total_timesteps/1)  # total timesteps we optimize over at each pass of MPC
+timesteps = int(total_timesteps/10)  # total timesteps we optimize over at each pass of MPC
 
 # goal state
 xf = np.zeros([states, 1])
@@ -26,10 +26,10 @@ xf[0, 0] = np.pi
 xf[1, 0] = 0
 
 # ddp parameters
-num_iter = 50  # optimization iterations
+num_iter = 100  # optimization iterations
 Q_f_ddp = np.diag([100, 50])
 Q_r_ddp = np.zeros([states, states])
 
-R_ddp = 0.01 * np.eye(num_controllers)
+R_ddp = 0.001 * np.eye(num_controllers)
 gamma = 0.5  # how much we account for du in updating the control during optimization
 

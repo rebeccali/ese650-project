@@ -46,6 +46,9 @@ if __name__ == "__main__":
     u_ddp = np.zeros([sys.num_controllers, int(sys.timesteps)])
 
     costvec = []
+    x = []
+    x.append(sys.state)
+    u = []
 
     x1 = sys.state # set intial state
 
@@ -69,8 +72,11 @@ if __name__ == "__main__":
         x1, c1 = sys.step(u_ddp[:, 0])
 
         # save the current state and control and reset intial state for the system
-        x[:, index + 1] = x1
-        u[:, index] = u_ddp[:, 0]
+        # x[:, index + 1] = x1
+        # u[:, index] = u_ddp[:, 0]
+
+        x.append(x1)
+        u.append(u_ddp[:, 0])
         costvec.append(-c1)
 
         sys.reset(reset_state=x1)
@@ -80,6 +86,7 @@ if __name__ == "__main__":
 
         print('iteration: ', index, "cost: ", -c1)
 
+    pdb.set_trace()
     xf = sys.goal
     x = np.asarray(x)
     u = np.asarray(u)
