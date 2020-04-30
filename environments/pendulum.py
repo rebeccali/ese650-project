@@ -22,8 +22,7 @@ class PendulumEnv(gym.Env):
 
         self.num_iter = pendulum_params.num_iter
 
-
-        self.Q_r_ddp = pendulum_params.Q_f_ddp
+        self.Q_r_ddp = pendulum_params.Q_r_ddp
         self.Q_f_ddp = pendulum_params.Q_f_ddp
         self.R_ddp = pendulum_params.R_ddp
         self.gamma = pendulum_params.gamma
@@ -82,9 +81,9 @@ class PendulumEnv(gym.Env):
             self.state = reset_state
         return self.state
 
-    # def _get_obs(self):
-    #     theta, thetadot = self.state
-    #     return np.array([np.cos(theta), np.sin(theta), thetadot])
+    def _get_obs(self):
+        theta, thetadot = self.state
+        return np.array([np.cos(theta), np.sin(theta), thetadot])
 
     def get_ddp_reward(self, u):
 
