@@ -21,7 +21,7 @@ class PendulumEnv(gym.Env):
 
         self.num_iter = pendulum_mpc_params.num_iter
 
-        self.Q_r_ddp = pendulum_mpc_params.Q_f_ddp
+        self.Q_r_ddp = pendulum_mpc_params.Q_r_ddp
         self.Q_f_ddp = pendulum_mpc_params.Q_f_ddp
         self.R_ddp = pendulum_mpc_params.R_ddp
         self.gamma = pendulum_mpc_params.gamma

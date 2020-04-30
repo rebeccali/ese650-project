@@ -37,20 +37,13 @@ if __name__ == "__main__":
     if args.test:
         num_iter = 3
 
-    x = np.zeros([sys.states, int(sys.total_time/sys.dt)])
-    x[:, 0] = sys.state # set initial state
-
-    u = np.zeros([sys.num_controllers, int(sys.total_time/sys.dt) - 1])
-
-    x_ddp = np.zeros([sys.states, int(sys.timesteps)])
-    u_ddp = np.zeros([sys.num_controllers, int(sys.timesteps)])
-
     costvec = []
     x = []
     x.append(sys.state)
     u = []
 
     x1 = sys.state # set intial state
+
 
     while current_time < (sys.total_time-sys.dt):
 
@@ -60,6 +53,7 @@ if __name__ == "__main__":
 
         for i in range(num_iter):
             u_opt = ddp(sys, x_ddp, u_ddp)
+
             x_new, cost = apply_control(sys, u_opt)
 
             # update state and control trajectories
@@ -86,13 +80,12 @@ if __name__ == "__main__":
 
         print('iteration: ', index, "cost: ", -c1)
 
-    pdb.set_trace()
     xf = sys.goal
     x = np.asarray(x)
     u = np.asarray(u)
     costvec = np.asarray(costvec)
 
-    sys.plot(xf, x, u, costvec)
+    sys.plot(xf, x.T, u.T, costvec)
 
     if not args.test:
         plt.show()
