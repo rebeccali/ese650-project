@@ -50,3 +50,9 @@ register(
     id='MPC-DDP-Simple-Quad-v0',
     entry_point='environments.simplequad_mpc:SimpleQuadEnv',
 )
+
+# runs with circlequad_mpc.py and circlequad_mpc.py
+register(
+    id='MPC-DDP-Circle-Quad-v0',
+    entry_point='environments.circlequad_mpc:SimpleQuadEnv',
+)
