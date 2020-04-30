@@ -19,9 +19,8 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    # sys = gym.make('DDP-Pendulum-v0')
-    # sys = gym.make('Simple-Quad-v0')
-    sys = gym.make('MPC-DDP-Pendulum-v0')
+    # sys = gym.make('MPC-DDP-Pendulum-v0')
+    sys = gym.make('MPC-DDP-Simple-Quad-v0')
 
     ################################################################################################
 
@@ -43,7 +42,6 @@ if __name__ == "__main__":
     u = []
 
     x1 = sys.state # set intial state
-
 
     while current_time < (sys.total_time-sys.dt):
 

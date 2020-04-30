@@ -11,17 +11,17 @@ J[2, 2] = 14.2e-3
 gr = 9.81  # gravity (m/s^2)
 states = 12  # number of states
 num_controllers = 4
-total_time = 10  # total time duration (s)
+total_time = 4  # total time duration (s)
 dt = 0.01  # discretization timestep
 
-timesteps = int(total_time / dt)  # total timesteps
+total_timesteps = int(total_time / dt)
+timesteps = int(total_timesteps/10)  # total timesteps
 
 xf = np.zeros([states, 1])
 
 xf[0, 0] = 1.5 # xpos
 xf[1, 0] = 2 # ypos
 xf[2, 0] = 3 # zpos
-
 
 
 # ddp parameters
