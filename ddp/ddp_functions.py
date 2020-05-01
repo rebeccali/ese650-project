@@ -54,7 +54,15 @@ def ddp(sys, x, u):
     timesteps = sys.timesteps
     dt = sys.dt
 
+
     xf = np.squeeze(sys.goal)
+
+    # if sys.goal.shape[1] == 1:
+    #     xf = np.squeeze(sys.goal)
+    # else:
+    #     xf_traj = sys.goal # gives the chunk of the goal state trajectory
+    #     xf = sys.goal[:, sys.goal.shape[1]] # use the last state in the value function initialization for the backward pass
+
 
     Qf = sys.Q_f_ddp
 

@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    # sys = gym.make('DDP-Pendulum-v0')
-    sys = gym.make('Simple-Quad-v0')
+    sys = gym.make('DDP-Pendulum-v0')
+    # sys = gym.make('Simple-Quad-v0')
 
     ################################################################################################
 

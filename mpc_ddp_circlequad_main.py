@@ -1,6 +1,6 @@
 """ main file for quadrotor tracking with mpc ddp controller """
 
-from ddp.ddp_functions import *
+from ddp.mpc_ddp_functions_circlequad import *
 import matplotlib.pyplot as plt
 import gym
 import environments
@@ -19,8 +19,6 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    # sys = gym.make('MPC-DDP-Pendulum-v0')
-    # sys = gym.make('MPC-DDP-Simple-Quad-v0')
     sys = gym.make('MPC-DDP-Circle-Quad-v0')
 
     ################################################################################################
@@ -87,3 +85,4 @@ if __name__ == "__main__":
 
     if not args.test:
         plt.show()
+

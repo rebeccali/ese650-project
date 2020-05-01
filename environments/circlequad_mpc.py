@@ -38,14 +38,25 @@ class SimpleQuadEnv(gym.Env):
         self.state = np.zeros((circlequad_mpc_params.states,))
         # state: x,y,z, dx,dy,dz, r,p,y, dr,dp,dy
 
-        self.goal = circlequad_mpc_params.xf
+        self.goal_index = 0
+        self.goal = circlequad_mpc_params.xf[self.goal_index:self.timesteps]
+
+        pdb.set_trace()
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
         if reset_state is None:
             self.state = np.zeros((circlequad_mpc_params.states,))
         else:
+            # update the reset state to the correct initial state after forward MPC step
             self.state = reset_state
+
+            pdb.set_trace()
+
+            # reset goal trajectory
+            self.index += 1
+            self.goal = circlequad_mpc_params.xf[self.goal_index:(self.goal_index + self.timesteps)]
+
         return self.state
 
     def step(self, u):
