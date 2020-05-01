@@ -1,6 +1,6 @@
 import torch.autograd
 import torch.nn as nn
-from au_functional import jacobian
+from symplectic.au_functional import jacobian
 import torch
 from torchdiffeq import odeint
 
