@@ -80,12 +80,15 @@ def get_model(args, baseline, structure, naive, device):
     return model, stats
 
 
-def get_one_step_prediction(model, x0, ts):
-    """ Given a model, and an initial condition, predict for all timesteps ts in the future.
+def get_one_step_prediction(model, x0, dt, device):
+    """ Given a model, and an initial condition, predict for some dt in the future.
         returns x_hats
     """
+    ts = torch.tensor([0., dt], requires_grad=True, dtype=torch.float32).to(device)
     x_hats = odeint(model, x0, ts, method='rk4')
-    return x_hats
+    x_hat = x_hats[1]
+    assert x_hat.shape == x0.shape
+    return x_hat
 
 
 def get_pred_loss(pred_x, pred_t_eval, model, device):
