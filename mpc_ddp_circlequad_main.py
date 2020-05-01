@@ -71,17 +71,20 @@ if __name__ == "__main__":
 
         sys.reset(reset_state=x1)
 
+        # update the goal trajectory for MPC
+        sys.set_goal()
+
         current_time += sys.dt
         index += 1
 
         print('iteration: ', index, "cost: ", -c1)
 
-    xf = sys.goal
+    xf = sys.total_goal
     x = np.asarray(x)
     u = np.asarray(u)
     costvec = np.asarray(costvec)
 
-    sys.plot(xf, x.T, u.T, costvec)
+    # sys.plot(xf, x.T, u.T, costvec)
 
     if not args.test:
         plt.show()

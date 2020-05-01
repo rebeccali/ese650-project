@@ -20,8 +20,7 @@ if __name__ == "__main__":
     ################################ system specific stuff ###################################
 
     # sys = gym.make('MPC-DDP-Pendulum-v0')
-    # sys = gym.make('MPC-DDP-Simple-Quad-v0')
-    sys = gym.make('MPC-DDP-Circle-Quad-v0')
+    sys = gym.make('MPC-DDP-Simple-Quad-v0')
 
     ################################################################################################
 

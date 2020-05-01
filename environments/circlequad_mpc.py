@@ -39,6 +39,7 @@ class SimpleQuadEnv(gym.Env):
         # state: x,y,z, dx,dy,dz, r,p,y, dr,dp,dy
 
         self.goal_index = 0
+        self.total_goal = circlequad_mpc_params.xf
         self.goal = circlequad_mpc_params.xf[self.goal_index:self.timesteps]
 
         pdb.set_trace()
@@ -50,12 +51,6 @@ class SimpleQuadEnv(gym.Env):
         else:
             # update the reset state to the correct initial state after forward MPC step
             self.state = reset_state
-
-            pdb.set_trace()
-
-            # reset goal trajectory
-            self.index += 1
-            self.goal = circlequad_mpc_params.xf[self.goal_index:(self.goal_index + self.timesteps)]
 
         return self.state
 
@@ -141,8 +136,11 @@ class SimpleQuadEnv(gym.Env):
     def get_qdot(self):
         return np.concatenate((self.state[3:6], self.state[9:12]))
 
-    def set_goal(self, goal):
-        self.goal = goal
+    def set_goal(self):
+
+        # reset goal trajectory
+        self.goal_index += 1
+        self.goal = circlequad_mpc_params.xf[self.goal_index:(self.goal_index + self.timesteps)]
 
     def state_control_transition(self, x, u):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
