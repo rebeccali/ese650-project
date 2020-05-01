@@ -20,12 +20,17 @@ register(
     entry_point='environments.acrobot:AcrobotEnv',
 )
 
-# Symplectic-ODENet pendulum
+# Symplectic-ODENet reference pendulum
 register(
     id='MyPendulum-v0',
     entry_point='environments.symp_pendulum:PendulumEnv',
 )
 
+# Pendulum using the learned model
+register(
+    id='LearnedPendulum-v0',
+    entry_point='environments.learned_pendulum:PendulumEnv',
+)
 
 # runs with pendulum_params.py and ddp_main.py
 register(
