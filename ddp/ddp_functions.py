@@ -54,7 +54,15 @@ def ddp(sys, x, u):
     timesteps = sys.timesteps
     dt = sys.dt
 
+
     xf = np.squeeze(sys.goal)
+
+    # if sys.goal.shape[1] == 1:
+    #     xf = np.squeeze(sys.goal)
+    # else:
+    #     xf_traj = sys.goal # gives the chunk of the goal state trajectory
+    #     xf = sys.goal[:, sys.goal.shape[1]] # use the last state in the value function initialization for the backward pass
+
 
     Qf = sys.Q_f_ddp
 
@@ -75,6 +83,7 @@ def ddp(sys, x, u):
     u_new = np.zeros([controllers, timesteps - 1])
 
     for t in range(timesteps - 1):
+
         l0, lx, lxx, lu, luu, lux, lxu = running_cost(sys, x[:, t], u[:, t])
 
         q0[:, t] = dt * l0
@@ -132,8 +141,10 @@ def ddp(sys, x, u):
 def apply_control(sys, u_opt):
     """ evaluates the controlled system trajectory """
 
-    timesteps = sys.timesteps
     states = sys.states
+
+    # if not MPC:
+    timesteps = sys.timesteps
 
     x_new = np.zeros([states, timesteps])
     x_new[:, 0] = sys.state
@@ -147,6 +158,16 @@ def apply_control(sys, u_opt):
 
         x_new[:, t + 1] = x1
         cost += c1
+
+    # else:
+    #     # returns next state and the reward of that state
+    #     u = u_opt[:, 0]
+    #     cost = 0
+    #
+    #     x1, c1 = sys.step(u)
+    #
+    #     x_new = x1
+    #     cost += c1
 
     return x_new, -cost
 

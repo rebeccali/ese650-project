@@ -19,14 +19,15 @@ if __name__ == "__main__":
 
     ################################ system specific stuff ###################################
 
-    # sys = gym.make('DDP-Pendulum-v0')
-    sys = gym.make('Simple-Quad-v0')
+    sys = gym.make('DDP-Pendulum-v0')
+    # sys = gym.make('Simple-Quad-v0')
 
     ################################################################################################
 
     num_iter = sys.num_iter
     if args.test:
         num_iter = 3
+
     x = np.zeros([sys.states, sys.timesteps])
     u = np.zeros([sys.num_controllers, sys.timesteps - 1])
 
