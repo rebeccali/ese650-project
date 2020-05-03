@@ -130,7 +130,9 @@ dmypy.json
 
 # Pycharm
 *.idea/
-
+#CUSTOM
+*.pkl
+*.tar
 # Videos
 *.json
 *.mp4

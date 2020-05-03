@@ -73,6 +73,7 @@ def get_model(args, baseline, structure, naive, device):
         label = '-hnn_ode'
     struct = '-struct' if structure else ''
     path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
+    print(path)
     model.load_state_dict(torch.load(path, map_location=device))
     path = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
     stats = from_pickle(path)
@@ -237,6 +238,34 @@ def get_all_models(args, device):
                   np.std(symoden_ode_struct_stats['traj_test_loss'])))
     return base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model
 
+def get_all_models_and_stats(args, device):
+    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, device=device)
+    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device)
+    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device)
+    symoden_ode_struct_model, symoden_ode_struct_stats = get_model(args, baseline=False, structure=True, naive=False,
+                                                                   device=device)
+    print('Naive Baseline contains {} parameters'.format(get_model_parm_nums(naive_ode_model)))
+    print('Final trajectory train loss {:.4e} +/- {:.4e}\nFinal trajectory test loss {:.4e} +/- {:.4e}'
+          .format(np.mean(naive_ode_stats['traj_train_loss']), np.std(naive_ode_stats['traj_train_loss']),
+                  np.mean(naive_ode_stats['traj_test_loss']), np.std(naive_ode_stats['traj_test_loss'])))
+    print('')
+    print('Geometric Baseline contains {} parameters'.format(get_model_parm_nums(base_ode_model)))
+    print('Final trajectory train loss {:.4e} +/- {:.4e}\nFinal trajectory test loss {:.4e} +/- {:.4e}'
+          .format(np.mean(base_ode_stats['traj_train_loss']), np.std(base_ode_stats['traj_train_loss']),
+                  np.mean(base_ode_stats['traj_test_loss']), np.std(base_ode_stats['traj_test_loss'])))
+    print('')
+    print('Unstructured SymODEN contains {} parameters'.format(get_model_parm_nums(symoden_ode_model)))
+    print('Final trajectory train loss {:.4e} +/- {:.4e}\nFinal trajectory test loss {:.4e} +/- {:.4e}'
+          .format(np.mean(symoden_ode_stats['traj_train_loss']), np.std(symoden_ode_stats['traj_train_loss']),
+                  np.mean(symoden_ode_stats['traj_test_loss']), np.std(symoden_ode_stats['traj_test_loss'])))
+    print('')
+    print('SymODEN contains {} parameters'.format(get_model_parm_nums(symoden_ode_struct_model)))
+    print('Final trajectory train loss {:.4e} +/- {:.4e}\nFinal trajectory test loss {:.4e} +/- {:.4e}'
+          .format(np.mean(symoden_ode_struct_stats['traj_train_loss']),
+                  np.std(symoden_ode_struct_stats['traj_train_loss']),
+                  np.mean(symoden_ode_struct_stats['traj_test_loss']),
+                  np.std(symoden_ode_struct_stats['traj_test_loss'])))
+    return base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model, base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats
 
 def get_model_parm_nums(model):
     total = sum([param.nelement() for param in model.parameters()])
