@@ -23,15 +23,12 @@ r = 1
 th1 = np.arange(0, 2 * np.pi, (2 * np.pi / total_timesteps))
 th2 = th1
 
-th = np.concatenate((th1,th2))
-
-xf = np.zeros([states, total_timesteps])
+th = np.concatenate((th1, th2))
+xf = np.zeros([states, th.shape[0]])
 
 xf[0, :] = r * np.cos(th)  # xpos
 xf[1, :] = r * np.sin(th)  # ypos
 xf[2, :] = 0.5  # zpos
-
-pdb.set_trace()
 
 # ddp parameters
 num_iter = 15  # optimization iterations

@@ -40,9 +40,7 @@ class SimpleQuadEnv(gym.Env):
 
         self.goal_index = 0
         self.total_goal = circlequad_mpc_params.xf
-        self.goal = circlequad_mpc_params.xf[self.goal_index:self.timesteps]
-
-        pdb.set_trace()
+        self.goal = circlequad_mpc_params.xf[:, self.goal_index:self.timesteps]
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
@@ -112,7 +110,7 @@ class SimpleQuadEnv(gym.Env):
         Q = self.Q_r_ddp
         R = self.R_ddp
 
-        delta_x = self.state - np.squeeze(self.goal)
+        delta_x = self.state - np.squeeze(np.linalg.norm(self.goal))
 
         cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u.T.dot(R).dot(u)
 

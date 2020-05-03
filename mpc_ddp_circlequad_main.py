@@ -74,6 +74,8 @@ if __name__ == "__main__":
         # update the goal trajectory for MPC
         sys.set_goal()
 
+        pdb.set_trace()
+
         current_time += sys.dt
         index += 1
 
