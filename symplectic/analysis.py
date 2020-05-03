@@ -79,16 +79,23 @@ def get_model(args, baseline, structure, naive, device):
     stats = from_pickle(path)
     return model, stats
 
+def np_to_integratable_type_1D(x, device):
+    """Converts 1D np array to integratable type for use in this library"""
+    shape = x.shape
+    assert len(shape) == 1, ("Expected 1D array, got ", x)
+    return torch.tensor(x, requires_grad=True, dtype=torch.float32).view(1,shape[0]).to(device)
 
 def get_one_step_prediction(model, x0, dt, device):
-    """ Given a model, and an initial condition, predict for some dt in the future.
+    """ Given a model, and an initial condition (1D numpy array), predict for some dt (scalar) in the future.
         returns x_hats
     """
+    assert type(x0) == np.ndarray
+    x0 = np_to_integratable_type_1D(x0, device)
     ts = torch.tensor([0., dt], requires_grad=True, dtype=torch.float32).to(device)
     x_hats = odeint(model, x0, ts, method='rk4')
     x_hat = x_hats[1]
     assert x_hat.shape == x0.shape
-    return x_hat
+    return x_hat[0].detach().cpu().numpy()
 
 
 def get_pred_loss(pred_x, pred_t_eval, model, device):
