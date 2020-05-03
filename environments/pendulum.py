@@ -1,8 +1,10 @@
 import gym
 from gym import spaces
 from gym.utils import seeding
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+from os import path
+
 from environments import pendulum_params
 import pdb
 
@@ -42,10 +44,14 @@ class PendulumEnv(gym.Env):
         self.min_action = [-self.max_torque]
         self.max_action = [self.max_torque]
 
-        self.observation_space = spaces.Box(np.array([-1, -1, -1]), np.array([1, 1, 1]))
+        self.observation_space = spaces.Box(np.array([-1, -1, -self.max_speed]), np.array([1, 1, self.max_speed]))
         self.action_space = spaces.Box(np.array([-self.max_torque]), np.array([self.max_torque]))
-
+        self.training_mode = False  # Lets us know if we're in training mode
         self.seed()
+
+    def training_mode(self):
+        """ Converts model to training mode """
+        self.training_mode = True
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -70,15 +76,21 @@ class PendulumEnv(gym.Env):
         self.state = np.array([newth, newthdot])
 
         reward = self.get_ddp_reward(u)
-
+        if self.training_mode:
+            return self._get_obs(), reward, False, {}
         return self.state, reward
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
-        if reset_state is None:
-            self.state = np.zeros((pendulum_params.states,))
+        if self.training_mode:
+            high = np.array([np.pi, 1])
+            self.state = self.np_random.uniform(low=-high, high=high)
+            self.last_u = None
         else:
-            self.state = reset_state
+            if reset_state is None:
+                self.state = np.zeros((pendulum_params.states,))
+            else:
+                self.state = reset_state
         return self.state
 
     def _get_obs(self):
@@ -123,6 +135,32 @@ class PendulumEnv(gym.Env):
         B[1, 0] = 1 / I
 
         return A, B
+
+    def render(self, mode='human'):
+
+        if self.viewer is None:
+            from gym.envs.classic_control import rendering
+            self.viewer = rendering.Viewer(500, 500)
+            self.viewer.set_bounds(-2.2, 2.2, -2.2, 2.2)
+            rod = rendering.make_capsule(1, .2)
+            rod.set_color(.8, .3, .3)
+            self.pole_transform = rendering.Transform()
+            rod.add_attr(self.pole_transform)
+            self.viewer.add_geom(rod)
+            axle = rendering.make_circle(.05)
+            axle.set_color(0, 0, 0)
+            self.viewer.add_geom(axle)
+            fname = path.join(path.dirname(__file__), "assets/clockwise.png")
+            self.img = rendering.Image(fname, 1., 1.)
+            self.imgtrans = rendering.Transform()
+            self.img.add_attr(self.imgtrans)
+
+        self.viewer.add_onetime(self.img)
+        self.pole_transform.set_rotation(self.state[0] + np.pi / 2)
+        if self.last_u:
+            self.imgtrans.scale = (-self.last_u / 2, np.abs(self.last_u) / 2)
+
+        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
     def plot(self, xf, x, u, costvec):
 

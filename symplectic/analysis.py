@@ -77,7 +77,6 @@ def get_model(args, baseline, structure, naive, device, verbose=True):
         label = '-hnn_ode'
     struct = '-struct' if structure else ''
     model_path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
-    print(model_path)
     try:
         model.load_state_dict(torch.load(model_path, map_location=device))
         stats_path = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
@@ -224,6 +223,7 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
     symoden_struct_ivp = integrate_model(symoden_ode_struct_model, t_span, y0_u, device=device, **kwargs)
     env = gym.make(args.env)
     env.reset()
+    env.training_mode()
     env.state = np.array([init_angle, 0.0], dtype=np.float32)
     obs = env._get_obs()
     obs_list = []

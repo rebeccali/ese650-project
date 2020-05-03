@@ -37,6 +37,7 @@ def get_args():
     parser.add_argument('--structure', dest='structure', action='store_true', help='using a structured Hamiltonian')
     parser.add_argument('--naive', dest='naive', action='store_true', help='use a naive baseline')
     parser.add_argument('--solver', default='rk4', type=str, help='type of ODE Solver for Neural ODE')
+    parser.add_argument('--test', default=False, action='store_true', help='Run in test mode. Does not save model.')
     parser.set_defaults(feature=True)
     return parser.parse_args()
 
@@ -174,16 +175,18 @@ if __name__ == "__main__":
     args = get_args()
     model, stats = train(args)
 
-    # save
-    os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None
-    if args.naive:
-        label = '-naive_ode'
-    elif args.baseline:
-        label = '-baseline_ode'
-    else:
-        label = '-hnn_ode'
-    struct = '-struct' if args.structure else ''
-    path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
-    torch.save(model.state_dict(), path)
-    path = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
-    to_pickle(stats, path)
+    if not args.test:
+        # save
+        os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None
+        if args.naive:
+            label = '-naive_ode'
+        elif args.baseline:
+            label = '-baseline_ode'
+        else:
+            label = '-hnn_ode'
+        struct = '-struct' if args.structure else ''
+        path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
+        torch.save(model.state_dict(), path)
+        statspath = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
+        to_pickle(stats, statspath)
+        print('Saved model to %s and stats to %s.' % (path, statspath))

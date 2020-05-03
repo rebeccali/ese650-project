@@ -37,7 +37,7 @@ def get_args():
             'num_points': 2,  # number of evaluation points by ode solver, including initial point
             'gpu': 0,
             'solver': 'rk4',
-            'env': 'MyPendulum-v0' # Name of the gym environment
+            'env': 'DDP-Pendulum-v0' # Name of the gym environment
             }
 
 def plot_learning(base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats, DPI):

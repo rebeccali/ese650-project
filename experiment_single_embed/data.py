@@ -9,14 +9,17 @@ from symplectic.utils import to_pickle, from_pickle
 import gym
 import environments
 
+_env_name = 'DDP-Pendulum-v0'
 def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
-              verbose=False, u=0.0, env_name='MyPendulum-v0'):
+              verbose=False, u=0.0, env_name=_env_name):
 
     gym_settings = locals()
     if verbose:
-        print("Making a dataset of Pendulum observations.")
+        print("Making a dataset of %s observations." % _env_name)
     env = gym.make(env_name)
     env.seed(seed)
+    # Needed for DDP. TODO:remove.
+    env.training_mode()
 
     trajs = []
     for trial in range(trials):
@@ -42,7 +45,7 @@ def get_dataset(seed=0, samples=50, test_split=0.5, save_dir=None, us=[0], rad=F
     data = {}
 
     assert save_dir is not None
-    path = '{}/pendulum-gym-dataset.pkl'.format(save_dir)
+    path = '{}/{}-dataset.pkl'.format(save_dir, _env_name)
     try:
         data = from_pickle(path)
         print("Successfully loaded data from {}".format(path))
@@ -61,8 +64,8 @@ def get_dataset(seed=0, samples=50, test_split=0.5, save_dir=None, us=[0], rad=F
         data = split_data
         data['t'] = tspan
 
-        # print('Saving dataset to {}.'.format(path))
-        # to_pickle(data, path)
+        print('Saving dataset to {}.'.format(path))
+        to_pickle(data, path)
     return data
 
 def arrange_data(x, t, num_points=2):
@@ -79,18 +82,18 @@ def arrange_data(x, t, num_points=2):
                 (x.shape[0], num_points, -1, x.shape[3]))
     t_eval = t[0:num_points]
     return x_stack, t_eval
-
-def get_field(xmin=-1.2, xmax=1.2, ymin=-1.2, ymax=1.2, gridsize=20, u=0):
-    field = {'meta': locals()}
-
-    # meshgrid to get vector field
-    b, a = np.meshgrid(np.linspace(xmin, xmax, gridsize), np.linspace(ymin, ymax, gridsize))
-    ys = np.stack([b.flatten(), a.flatten()])
-
-    # get vector directions
-    dydt = [dynamics_fn(None, y, u) for y in ys.T]
-    dydt = np.stack(dydt).T
-
-    field['x'] = ys.T
-    field['dx'] = dydt.T
-    return field
+#
+# def get_field(xmin=-1.2, xmax=1.2, ymin=-1.2, ymax=1.2, gridsize=20, u=0):
+#     field = {'meta': locals()}
+#
+#     # meshgrid to get vector field
+#     b, a = np.meshgrid(np.linspace(xmin, xmax, gridsize), np.linspace(ymin, ymax, gridsize))
+#     ys = np.stack([b.flatten(), a.flatten()])
+#
+#     # get vector directions
+#     dydt = [dynamics_fn(None, y, u) for y in ys.T]
+#     dydt = np.stack(dydt).T
+#
+#     field['x'] = ys.T
+#     field['dx'] = dydt.T
+#     return field
