@@ -1,5 +1,9 @@
 from gym.envs.registration import register
 
+
+# UPDATE THIS IF YOU ADD A LEARNED MODEL
+learned_models = ['LearnedPendulum-v0']
+
 register(
     id='My_FA_Acrobot-v0',
     entry_point='environments.fa_acrobot:AcrobotEnv',

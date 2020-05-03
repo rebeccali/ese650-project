@@ -1,18 +1,49 @@
 """ A Pendulum Learned using the SymplectivODENet thing"""
-
-import torch
 import numpy as np
-from environments import pendulum
-from symplectic.analysis import get_one_step_prediction, np_to_integratable_type_1D
+import pathlib
+
+from environments import learned_params, pendulum
+from symplectic.analysis import get_one_step_prediction, np_to_integratable_type_1D, get_model
 from symplectic.au_functional import jacobian
+from symplectic.utils import ObjectView
 
 
 class LearnedPendulumEnv(pendulum.PendulumEnv):
 
-    def __init__(self, model, device):
+    def __init__(self, model_type='structure', verbose=True):
+        """ Inputs: model type. Either structure or naive
+            structure is the structured Sympode
+            naive is the naive baseline model.
+        """
         pendulum.PendulumEnv.__init__(self)
-        self.model = model
-        self.device = device
+
+        parent_dir = pathlib.Path(__file__).parents[1].absolute()
+        print("Current script directory: ", parent_dir)
+        EXPERIMENT_DIR = str(parent_dir) + '/experiment_single_embed'
+        print('Expeirment de %s' % EXPERIMENT_DIR)
+        self.args = ObjectView({'num_angle': 1,  # Number of generalized coordinates
+                'nonlinearity': 'tanh',  # NN nonlinearity
+                'name': 'pend',  # name of environment
+                'seed': 0,
+                'save_dir': '{}'.format(EXPERIMENT_DIR),
+                'fig_dir': '{}/figures'.format(parent_dir),
+                'num_points': 2,  # number of evaluation points by ode solver, including initial point
+                'gpu': 0,
+                'solver': 'rk4',
+                'env': 'LearnedPendulum-v0',  # Name of the gym environment
+                })
+        self.device = learned_params.get_device(self.args.gpu)
+
+        # Fetch the model
+        self.model_type = model_type
+        if model_type == 'structure':
+            self.model, self.stats = get_model(self.args, baseline=False, structure=True, naive=False,
+                                   device=self.device, verbose=verbose)
+        elif model_type == 'naive':
+            self.model, self.stats = get_model(self.args, baseline=False, structure=False, naive=True,
+                                                         device=self.device, verbose=verbose)
+        else:
+            raise RuntimeError('Model type %s not accepted' % model_type)
 
     def step(self, u):
         """ Do one step of simulation given an input u

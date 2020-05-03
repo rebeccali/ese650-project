@@ -88,3 +88,7 @@ def plot_trajectory_phase(estimate, truth):
     ax.set_xlabel('Theta')
     ax.set_ylabel('Theta Dot')
     ax.legend()
+
+
+class ObjectView(object):
+    def __init__(self, d): self.__dict__ = d
