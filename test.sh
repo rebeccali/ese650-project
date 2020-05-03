@@ -6,3 +6,4 @@ python experiment_single_embed/train.py --verbose --total_steps 10
 python experiment_single_embed/train.py --verbose --structure --total_steps 10
 python experiment_single_embed/train.py --verbose --naive --total_steps 10
 python scripts/run_learned_pendulum.py
+python analyze-single-embed.py --test
