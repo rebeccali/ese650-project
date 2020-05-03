@@ -223,7 +223,7 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
     symoden_struct_ivp = integrate_model(symoden_ode_struct_model, t_span, y0_u, device=device, **kwargs)
     env = gym.make(args.env)
     env.reset()
-    env.training_mode()
+    env.set_training_mode()
     env.state = np.array([init_angle, 0.0], dtype=np.float32)
     obs = env._get_obs()
     obs_list = []

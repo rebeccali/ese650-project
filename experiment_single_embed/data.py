@@ -19,7 +19,7 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
     env = gym.make(env_name)
     env.seed(seed)
     # Needed for DDP. TODO:remove.
-    env.training_mode()
+    env.set_training_mode()
 
     trajs = []
     for trial in range(trials):

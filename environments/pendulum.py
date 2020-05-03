@@ -4,6 +4,7 @@ from gym.utils import seeding
 import matplotlib.pyplot as plt
 import numpy as np
 from os import path
+from scipy.integrate import solve_ivp
 
 from environments import pendulum_params
 import pdb
@@ -49,7 +50,7 @@ class PendulumEnv(gym.Env):
         self.training_mode = False  # Lets us know if we're in training mode
         self.seed()
 
-    def training_mode(self):
+    def set_training_mode(self):
         """ Converts model to training mode """
         self.training_mode = True
 
@@ -57,23 +58,44 @@ class PendulumEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def step(self, u):
-
-        th, thdot = self.state  # th := theta
-
+    def dynamics(self, t, y, u):
+        """
+        y (np array)
+        u (scalar)
+        """
         g = self.g
         m = self.m
         l = self.l
         b = self.b
-        dt = self.dt
         I = self.I
+        f = np.zeros_like(y)
+        th, thdot = y
+        f[0] = thdot
+        f[1] = -b / I * thdot - m * g * l / I * np.sin(th) + u / I  # acceleration
+
+        return f
+
+    def step(self, u):
 
         u = u[0]
-        acceleration = -b / I * thdot - m * g * l / I * np.sin(th) + u / I
-        newth = th + thdot * dt
-        newthdot = thdot + acceleration * dt
 
-        self.state = np.array([newth, newthdot])
+        # th, thdot = self.state  # th := theta
+
+        # g = self.g
+        # m = self.m
+        # l = self.l
+        # b = self.b
+        # dt = self.dt
+        # I = self.I
+
+        # acceleration = -b / I * thdot - m * g * l / I * np.sin(th) + u / I
+        # newth = th + thdot * dt
+        # newthdot = thdot + acceleration * dt
+        # self.state = np.array([newth, newthdot])
+
+        # Do integration with RK45 instead of with euler integration
+        ivp = solve_ivp(fun=lambda t, y: self.dynamics(t, y, u), t_span=[0, self.dt], y0=self.state, method='RK45')
+        self.state = ivp.y[:, -1]
 
         reward = self.get_ddp_reward(u)
         if self.training_mode:
