@@ -79,11 +79,13 @@ def get_model(args, baseline, structure, naive, device):
     stats = from_pickle(path)
     return model, stats
 
+
 def np_to_integratable_type_1D(x, device):
     """Converts 1D np array to integratable type for use in this library"""
     shape = x.shape
     assert len(shape) == 1, ("Expected 1D array, got ", x)
-    return torch.tensor(x, requires_grad=True, dtype=torch.float32).view(1,shape[0]).to(device)
+    return torch.tensor(x, requires_grad=True, dtype=torch.float32).view(1, shape[0]).to(device)
+
 
 def get_one_step_prediction(model, x0, dt, device):
     """ Given a model, and an initial condition (1D numpy array), predict for some dt (scalar) in the future.
@@ -224,7 +226,7 @@ def get_all_models(args, device, verbose=True):
     base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device)
     symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device)
     symoden_ode_struct_model, symoden_ode_struct_stats = get_model(args, baseline=False, structure=True, naive=False,
-                                                                device=device)
+                                                                   device=device)
     if verbose:
         print('Naive Baseline contains {} parameters'.format(get_model_parm_nums(naive_ode_model)))
         print('Final trajectory train loss {:.4e} +/- {:.4e}\nFinal trajectory test loss {:.4e} +/- {:.4e}'

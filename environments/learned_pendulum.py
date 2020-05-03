@@ -75,7 +75,6 @@ class LearnedPendulumEnv(pendulum.PendulumEnv):
         dfdy0 = dfdy0[0, :, 0, :]  # Reshape to get rid of extra dimensions
         return dfdy0.detach().cpu().numpy()
 
-
     def render(self, mode='human'):
         print('UNIMPLEMENTED RENDER')
         pass

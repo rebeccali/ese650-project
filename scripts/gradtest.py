@@ -6,7 +6,7 @@ from torchdiffeq import odeint
 
 true_y0 = torch.tensor([[2., 0.]], requires_grad=True)
 b = torch.tensor([10.])
-data_size=5
+data_size = 5
 t = torch.linspace(0., 25., data_size)
 true_A = torch.tensor([[-0.1, 2.0], [-2.0, -0.1]])
 
@@ -31,8 +31,3 @@ print(f(true_y0))
 
 jac = jacobian(f, true_y0)
 print(jac)
-
-
-
-
-
