@@ -69,9 +69,10 @@ class SimpleQuadEnv(gym.Env):
         state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
         
         #print(state_dot)
-        state_dot[2:4] = pos_dd
+        state_dot[2:4] = np.squeeze(pos_dd)
         
         state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
+        print(state_dot)
         
         # propogate state forward using state_dot
         new_state = self.state + self.dt * state_dot
@@ -120,89 +121,18 @@ class SimpleQuadEnv(gym.Env):
         m = quad2D_params.m
         L = quad2D_params.L
         J = quad2D_params.J
-        Jx = J[0, 0]
-        Jy = J[1, 1]
-        Jz = J[2, 2]
-
-        states = quad2D_params.states
-        controllers = quad2D_params.num_controllers
-
-        A = np.zeros([states, states])
-        B = np.zeros([states, controllers])
-
-        phi = x[6]
-        theta = x[7]
-        psi = x[8]
-        phi_dot = x[9]
-        theta_dot = x[10]
-        psi_dot = x[11]
-
-        f1 = u[0]
-        f2 = u[1]
-        f3 = u[2]
-        f4 = u[3]
-
-        u1 = f1 + f2 + f3 + f4  # total force
-        u2 = f4 - f2  # roll actuation
-        u3 = f1 - f3  # pitch actuation
-        u4 = 0.05 * (f2 + f4 - f1 - f3)  # yaw moment
-
-        A[0, 3] = 1
-        A[1, 4] = 1
-        A[2, 5] = 1
-        A[6, 9] = 1
-        A[7, 10] = 1
-        A[8, 11] = 1
-
-        A[3, 6] = (u1 * (np.cos(phi) * np.sin(psi) - np.cos(psi) * np.sin(phi) * np.sin(theta))) / m
-        A[3, 7] = (u1 * np.cos(phi) * np.cos(psi) * np.cos(theta)) / m
-        A[3, 8] = (u1 * (np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta))) / m
-
-        A[4, 6] = -(u1 * (np.cos(phi) * np.cos(psi) + np.sin(phi) * np.sin(psi) * np.sin(theta))) / m
-        A[4, 7] = (u1 * np.cos(phi) * np.cos(theta) * np.sin(psi)) / m
-        A[4, 8] = (u1 * (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta))) / m
-
-        A[5, 6] = (u1 * np.cos(theta) * np.sin(phi)) / m
-
-        A[9, 10] = (psi_dot * (Jy - Jz)) / Jx
-        A[9, 11] = (theta_dot * (Jy - Jz)) / Jx
-
-        A[10, 9] = -(psi_dot * (Jx - Jz)) / Jy
-        A[10, 11] = -(phi_dot * (Jx - Jz)) / Jy
-
-        A[11, 9] = (theta_dot * (Jx - Jy)) / Jz
-        A[11, 10] = (phi_dot * (Jx - Jy)) / Jz
-
-        B[3, 0] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
-        B[3, 1] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
-        B[3, 2] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
-        B[3, 3] = (np.sin(phi) * np.sin(psi) + np.cos(phi) * np.cos(psi) * np.sin(theta)) / m
-
-        B[4, 0] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
-        B[4, 1] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
-        B[4, 2] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
-        B[4, 3] = -(np.cos(psi) * np.sin(phi) - np.cos(phi) * np.sin(psi) * np.sin(theta)) / m
-
-        B[5, 0] = -(np.cos(phi) * np.cos(theta)) / m
-        B[5, 1] = -(np.cos(phi) * np.cos(theta)) / m
-        B[5, 2] = -(np.cos(phi) * np.cos(theta)) / m
-        B[5, 3] = -(np.cos(phi) * np.cos(theta)) / m
-
-        B[9, 1] = -L / Jx
-        B[9, 3] = L / Jx
-
-        B[10, 0] = L / Jy
-        B[10, 2] = -L / Jy
-
-        B[11, 0] = -1 / Jz
-        B[11, 1] = 1 / Jz
-        B[11, 2] = -1 / Jz
-        B[11, 3] = 1 / Jz
-
-        # B[11, 0] = -1 / (20 * Jz)
-        # B[11, 1] = 1 / (20 * Jz)
-        # B[11, 2] = -1 / (20 * Jz)
-        # B[11, 3] = 1 / (20 * Jz)
+        
+        th = x[4]
+        u1 = u[0]
+        u2 = u[1]
+        
+        A = np.zeros((6,6))
+        
+        A[3:6,3:6] = np.eye(3)
+        A[3,5] = -np.cos(th)*(u1+u2)
+        A[4,5] = -np.sin(th)*(u1+u2)
+        B = np.zeros((6,2))
+        B[3:6,:] = np.array([[-np.sin(th), -np.sin(th)],[np.cos(th),np.cos(th)],[-L/J, L/J]])
 
         return A, B
 
@@ -223,55 +153,22 @@ class SimpleQuadEnv(gym.Env):
         plt.subplot(233)
         plt.plot(x[2, :])
         plt.plot(xf[2] * np.ones([self.timesteps, ]), 'r')
-        plt.title('z')
+        plt.title('x dot')
 
         plt.subplot(234)
         plt.plot(x[3, :])
         plt.plot(xf[3] * np.ones([self.timesteps, ]), 'r')
-        plt.title('x dot')
+        plt.title('y dot')
 
         plt.subplot(235)
         plt.plot(x[4, :])
         plt.plot(xf[4] * np.ones([self.timesteps, ]), 'r')
-        plt.title('y dot')
+        plt.title('theta')
 
         plt.subplot(236)
         plt.plot(x[5, :])
         plt.plot(xf[5] * np.ones([self.timesteps, ]), 'r')
-        plt.title('z dot')
-
-        # rotational states
-
-        plt.figure(2)
-        plt.subplot(231)
-        plt.plot(x[6, :])
-        plt.plot(xf[6] * np.ones([self.timesteps, ]), 'r')
-        plt.title('theta')
-
-        plt.subplot(232)
-        plt.plot(x[7, :])
-        plt.plot(xf[7] * np.ones([self.timesteps, ]), 'r')
-        plt.title('phi')
-
-        plt.subplot(233)
-        plt.plot(x[8, :])
-        plt.plot(xf[8] * np.ones([self.timesteps, ]), 'r')
-        plt.title('psi')
-
-        plt.subplot(234)
-        plt.plot(x[9, :])
-        plt.plot(xf[9] * np.ones([self.timesteps, ]), 'r')
         plt.title('theta dot')
-
-        plt.subplot(235)
-        plt.plot(x[10, :])
-        plt.plot(xf[10] * np.ones([self.timesteps, ]), 'r')
-        plt.title('phi dot')
-
-        plt.subplot(236)
-        plt.plot(x[11, :])
-        plt.plot(xf[11] * np.ones([self.timesteps, ]), 'r')
-        plt.title('psi dot')
 
         # cost
         plt.figure(3)
@@ -280,15 +177,10 @@ class SimpleQuadEnv(gym.Env):
 
         # control
         plt.figure(4)
-        plt.subplot(411)
+        plt.subplot(211)
         plt.plot(u[0, :].T)
         plt.title('u opt output')
 
-        plt.subplot(412)
+        plt.subplot(212)
         plt.plot(u[1, :].T)
 
-        plt.subplot(413)
-        plt.plot(u[2, :].T)
-
-        plt.subplot(414)
-        plt.plot(u[3, :].T)
