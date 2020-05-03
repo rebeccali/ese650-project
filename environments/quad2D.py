@@ -53,8 +53,8 @@ class SimpleQuadEnv(gym.Env):
 
         state = self.state
         th = state[4]
-        R = np.array([[np.cos(th),np.sin(th)],[-np.sin(th),np.cos(th)]])
-        #print(R)
+        R = np.array([[np.cos(th),-np.sin(th)],[np.sin(th),np.cos(th)]])
+        print(R)
         
         state_dot = np.zeros((quad2D_params.states,))
 
@@ -62,7 +62,7 @@ class SimpleQuadEnv(gym.Env):
         state_dot[4] = state[5]
 
         pos_dd = (1/self.m) *R @ np.array([[0],[u[0]+u[1]]]) - np.array([[0],[self.g]])
-        #print(pos_dd)
+        print(pos_dd)
         #print(pos_dd.reshape((2,)))
         state_dot[2:4] = np.squeeze(pos_dd)
         
