@@ -74,8 +74,6 @@ if __name__ == "__main__":
         # update the goal trajectory for MPC
         sys.set_goal()
 
-        pdb.set_trace()
-
         current_time += sys.dt
         index += 1
 
@@ -86,7 +84,9 @@ if __name__ == "__main__":
     u = np.asarray(u)
     costvec = np.asarray(costvec)
 
-    # sys.plot(xf, x.T, u.T, costvec)
+    pdb.set_trace()
+
+    sys.plot(xf, x.T, u.T, costvec)
 
     if not args.test:
         plt.show()

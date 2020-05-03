@@ -135,10 +135,10 @@ class SimpleQuadEnv(gym.Env):
         return np.concatenate((self.state[3:6], self.state[9:12]))
 
     def set_goal(self):
-
         # reset goal trajectory
         self.goal_index += 1
-        self.goal = circlequad_mpc_params.xf[self.goal_index:(self.goal_index + self.timesteps)]
+        self.goal = circlequad_mpc_params.xf[:,self.goal_index:(self.goal_index + self.timesteps)]
+
 
     def state_control_transition(self, x, u):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
@@ -234,6 +234,8 @@ class SimpleQuadEnv(gym.Env):
         return A, B
 
     def plot(self, xf, x, u, costvec):
+
+        xf = xf[:, 0:x.shape[1]]
 
         # translational states
         plt.figure(1)
