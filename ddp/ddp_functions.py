@@ -2,20 +2,20 @@ import numpy as np
 import pdb
 
 
-def running_cost(sys, x, u):
+def running_cost(env, x, u):
     """
-    :param sys: system from gym environment this stores the
+    :param env: environment from gym environment this stores the
     :param x: state trajectory
     :param u: control trajectory
     :return: gradients and Hessians of the loss function with respect to states and controls
 
     """
-    xf = np.squeeze(sys.goal)
+    xf = np.squeeze(env.goal)
 
-    states = sys.states
-    controllers = sys.num_controllers
-    R = sys.R_ddp
-    Qr = sys.Q_r_ddp
+    states = env.states
+    controllers = env.num_controllers
+    R = env.R_ddp
+    Qr = env.Q_r_ddp
 
     err = x - xf
 
@@ -44,27 +44,27 @@ def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
     return Q, Qx, Qu, Qxx, Quu, Qxu
 
 
-def ddp(sys, x, u):
+def ddp(env, x, u):
     """ takes in the current state and control trajectories and outputs optimal control trajectory """
 
-    states = sys.states
-    controllers = sys.num_controllers
+    states = env.states
+    controllers = env.num_controllers
 
-    # these come from teh params file of the system
-    timesteps = sys.timesteps
-    dt = sys.dt
+    # these come from teh params file of the environment
+    timesteps = env.timesteps
+    dt = env.dt
 
 
-    xf = np.squeeze(sys.goal)
+    xf = np.squeeze(env.goal)
 
-    # if sys.goal.shape[1] == 1:
-    #     xf = np.squeeze(sys.goal)
+    # if env.goal.shape[1] == 1:
+    #     xf = np.squeeze(env.goal)
     # else:
-    #     xf_traj = sys.goal # gives the chunk of the goal state trajectory
-    #     xf = sys.goal[:, sys.goal.shape[1]] # use the last state in the value function initialization for the backward pass
+    #     xf_traj = env.goal # gives the chunk of the goal state trajectory
+    #     xf = env.goal[:, env.goal.shape[1]] # use the last state in the value function initialization for the backward pass
 
 
-    Qf = sys.Q_f_ddp
+    Qf = env.Q_f_ddp
 
     q0 = np.zeros([1, timesteps - 1])
     qk = np.zeros([states, timesteps - 1])
@@ -84,7 +84,7 @@ def ddp(sys, x, u):
 
     for t in range(timesteps - 1):
 
-        l0, lx, lxx, lu, luu, lux, lxu = running_cost(sys, x[:, t], u[:, t])
+        l0, lx, lxx, lu, luu, lux, lxu = running_cost(env, x[:, t], u[:, t])
 
         q0[:, t] = dt * l0
         qk[:, t] = dt * lx
@@ -93,7 +93,7 @@ def ddp(sys, x, u):
         Rk[:, :, t] = dt * luu
         Pk[:, :, t] = dt * lxu
 
-        dfx, dfu = sys.state_control_transition(x[:, t], u[:, t])
+        dfx, dfu = env.state_control_transition(x[:, t], u[:, t])
 
         A[:, :, t] = np.eye(states) + dfx * dt
         B[:, :, t] = dfu * dt
@@ -126,7 +126,7 @@ def ddp(sys, x, u):
     dx = np.zeros([states, 1])
 
     for t in range(timesteps - 1):
-        gamma = sys.gamma
+        gamma = env.gamma
 
         du = lk[:, t] + np.squeeze(Lk[:, :, t].dot(dx))
         dx = np.squeeze(A[:, :, t].dot(dx)) + B[:, :, t].dot(du)
@@ -138,23 +138,23 @@ def ddp(sys, x, u):
     return u_opt
 
 
-def apply_control(sys, u_opt):
-    """ evaluates the controlled system trajectory """
+def apply_control(env, u_opt):
+    """ evaluates the controlled envtem trajectory """
 
-    states = sys.states
+    states = env.states
 
     # if not MPC:
-    timesteps = sys.timesteps
+    timesteps = env.timesteps
 
     x_new = np.zeros([states, timesteps])
-    x_new[:, 0] = sys.state
+    x_new[:, 0] = env.state
     cost = 0
 
     for t in range(timesteps - 1):
         u = u_opt[:, t]
 
         # returns next state and the reward of that state
-        x1, c1 = sys.step(u)
+        x1, c1 = env.step(u)
 
         x_new[:, t + 1] = x1
         cost += c1
@@ -164,7 +164,7 @@ def apply_control(sys, u_opt):
     #     u = u_opt[:, 0]
     #     cost = 0
     #
-    #     x1, c1 = sys.step(u)
+    #     x1, c1 = env.step(u)
     #
     #     x_new = x1
     #     cost += c1
