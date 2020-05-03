@@ -62,13 +62,17 @@ class SimpleQuadEnv(gym.Env):
         state_dot[4] = state[5]
 
         pos_dd = (1/self.m) *R @ np.array([[0],[u[0]+u[1]]]) - np.array([[0],[self.g]])
-        print(pos_dd)
+
         #print(pos_dd.reshape((2,)))
         state_dot[2:4] = np.squeeze(pos_dd)
         
         state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
         
         #print(state_dot)
+        state_dot[2:4] = pos_dd
+        
+        state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
+        
         # propogate state forward using state_dot
         new_state = self.state + self.dt * state_dot
 
