@@ -45,21 +45,20 @@ def main():
     dt = 0.05
     env.dt = dt
 
-    x0 = np.array([0.5, 0.])
+    x0 = np.array([0.5, 0.5, 0.])
     env.state = x0
     u0 = np.array([0.])
     A, B = env.state_control_transition(x0, u0)
-    y0_un = np.array([np.cos(x0[0]), np.sin(x0[0]), x0[1], u0[0]])
+    y0_un = np.hstack([x0, u0])
     jn = env.get_full_jacobian(y0_un)
     print('A', A)
     print('B', B)
     new_s, _ = env.step(u0)
 
-    csx0 = np.array([np.cos(x0[0]), np.sin(x0[0]), x0[1]])
+    csx0 = x0
     new_ds = np.array(new_s) - x0
 
     print('new_ds', new_ds)
-    print('dcos, dssin, dqdot', (np.cos(new_ds[0]), np.sin(new_ds[0]), new_ds[1]))
     # check the jacobian and A B match
 
     xs = np.matmul(A, csx0)

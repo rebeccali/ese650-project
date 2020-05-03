@@ -124,7 +124,7 @@ class PendulumEnv(gym.Env):
 
         return A, B
 
-    def plot(self,xf, x, u, costvec):
+    def plot(self, xf, x, u, costvec):
 
         plt.figure(1)
         plt.subplot(211)

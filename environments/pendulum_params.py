@@ -1,4 +1,5 @@
 import numpy as np
+# TODO: convert these to params files
 
 # params used for the inverted pendulum system
 m = 1.4  # mass of quadrotor (kg)
@@ -21,8 +22,10 @@ xf[1, 0] = 0
 
 # ddp parameters
 num_iter = 50  # optimization iterations
+# TODO: fix this so learned_pendulum doesn't have to use this I guess
 Q_f_ddp = np.diag([100, 1])
 Q_r_ddp = np.zeros([states, states])
+
 
 R_ddp = 0.1 * np.eye(num_controllers)
 gamma = 0.5  # how much we account for du in updating the control during optimization
