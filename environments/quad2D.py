@@ -6,7 +6,7 @@ from environments import quad2D_params
 import pdb
 
 
-class SimpleQuadEnv(gym.Env):
+class Quad2DEnv(gym.Env):
 
     def __init__(self):
         self.dt = quad2D_params.dt
