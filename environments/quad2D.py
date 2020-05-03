@@ -54,7 +54,7 @@ class SimpleQuadEnv(gym.Env):
         state = self.state
         th = state[4]
         R = np.array([[np.cos(th),-np.sin(th)],[np.sin(th),np.cos(th)]])
-        print(R)
+        #print(R)
         
         state_dot = np.zeros((quad2D_params.states,))
 
@@ -93,22 +93,22 @@ class SimpleQuadEnv(gym.Env):
         return cost
     
     def get_H(self):
-        dx = self.state[3:6]
-        dth = self.state[9:12]
-        z = self.state[2]
+        dx = self.state[2:4]
+        dth = self.state[5]
+        y = self.state[1]
         
         trans = (1/2)*self.m*np.dot(dx,dx)
-        rot = (1/2)*(dth.T @ self.J) @ dth
+        rot = (1/2)*(dth**2) * self.J
         
-        return trans + rot - self.m*self.g*z
+        return trans + rot + self.m*self.g*y
     
     def get_pdot(self):
-        pdot = np.zeros((6,))
-        pdot[2] = self.m*self.g
+        pdot = np.zeros((3,))
+        pdot[1] = -self.m*self.g
         return pdot
 
     def get_qdot(self):
-        return np.concatenate((self.state[3:6],self.state[9:12]))
+        return np.concatenate((self.state[2:4],self.state[5]))
 
     def set_goal(self, goal):
         self.goal = goal
