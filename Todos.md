@@ -6,9 +6,9 @@
 6. try mpc with learnedpendulum-v0
 9. QUAD STUFF:
     * Construct quadrotor SympodeN network. Make a network that takes the right number of inputs and outputs with embeded angles (walker)
-    * new experiment-simple-quad folder, with train.py and data.py (rebecca)
-    * new analyze-simple-quad.py (rebecca)
-    * make learnquad environment (rebecca)
+    * new experiment-simple-quad folder, with train.py and data.py (rebecca) Status: Made, not tested
+    * new analyze-simple-quad.py (rebecca) Status: Made, not tested
+    * make learnquad environment (rebecca) Status: Made, not tested
 9. plots???
     * what we have: energy comparison, test loss during training time,
     * what we need:
