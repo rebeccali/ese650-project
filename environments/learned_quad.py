@@ -1,31 +1,35 @@
-""" A Pendulum Learned using the SymplectivODENet thing"""
+""" A Quadrotor Learned using the SymplectivODENet thing"""
 import numpy as np
 
-from environments import learned_params, pendulum
+from environments import learned_params, simplequad
 from symplectic.analysis import get_one_step_prediction, np_to_integratable_type_1D, get_model
 from symplectic.au_functional import jacobian
 from symplectic.utils import ObjectView
 
 
-class LearnedPendulumEnv(pendulum.PendulumEnv):
+class LearnedQuadEnv(simplequad.SimpleQuadEnv):
 
     def __init__(self, model_type='structure', verbose=False):
         """ Inputs: model type. Either structure or naive
             structure is the structured Sympode
             naive is the naive baseline model.
         """
-        pendulum.PendulumEnv.__init__(self)
-        # TODO: rewrite these correctly with a dictionary or something instead of pulling from params
-        # convert goal to 3 states
+        simplequad.SimpleQuadEnv.__init__(self)
+        # TODO(rebecca): rewrite these correctly with a dictionary or something instead of pulling from params
+        # convert goal to embedded states
         self.goal = to_embed_state(self.goal)
-        self.states = 3
+        def error(x): raise Exception(x) # TODO: remove lol
+        self.states = error('Unimplemented')  # TODO: fix, shold be number of embedded states
         self.state = np.zeros((self.states))
         self.Q_r_ddp = np.zeros([self.states, self.states])
-        self.Q_f_ddp = np.diag([100, 100, 1])
+        self.Q_f_ddp = error('Unimplemented')
+        self.Q_f_ddp = np.diag([100, 100, 1])  # TODO: fix to be the right number of states
 
         # Set up the model arguments
-        EXPERIMENT_DIR = '/experiment_single_embed'
-        self.args = ObjectView(learned_params.get_pendulum_args(EXPERIMENT_DIR, 'LearnedPendulum-v0'))
+        EXPERIMENT_DIR = '/experiment_simple_quad'
+        # TODO: fill out args correctly
+        self.args = error('Need to go filll out args correctly in learned_params')
+        #self.args =  ObjectView(learned_params.get_quad_args(EXPERIMENT_DIR, 'LearnedQuad-v0'))
         self.device = learned_params.get_device(self.args.gpu)
 
         # Fetch the model
@@ -41,6 +45,7 @@ class LearnedPendulumEnv(pendulum.PendulumEnv):
 
     def step(self, u):
         """ Do one step of simulation given an input u
+        # TODO(rebecca): make this a super class and use inheiritance
         """
         # Assemble combined state-input vector
         y0_u = np.hstack([self.state, u])
@@ -49,14 +54,15 @@ class LearnedPendulumEnv(pendulum.PendulumEnv):
 
         self.state = y1_u[0:self.states]
 
-        reward = self.get_ddp_reward(u[0])
+        reward = self.get_ddp_reward(u)
         return self.state, reward
 
     def state_control_transition(self, x, u):
         """ takes in state and control trajectories and outputs the Jacobians for the linearized system
         """
-        assert x.shape[0] == self.states, ("Expected x = [cosq, sinq, qdot], got ", x)
-        assert u.shape[0] == self.num_controllers, ("Expected u = [torque], got ", u)
+        raise Exception('Unimplemented asserts for x, u size instate control trans')
+        assert x.shape[0] == self.states, ("Expected x = [cosq, sinq, qdot], got ", x)  # TODO
+        assert u.shape[0] == self.num_controllers, ("Expected u = [torque], got ", u)  # TODO
         # First, find the model as evaluated at x, u
         # y0_u should be (4,) shape
         y0_u = np.hstack([x, u])
@@ -92,16 +98,20 @@ class LearnedPendulumEnv(pendulum.PendulumEnv):
 
     def reset(self, *args, **kwargs):
         # Pass through arguments but then convert the state
-        self.state = to_embed_state(super(LearnedPendulumEnv, self).reset(*args, **kwargs))
+        self.state = to_embed_state(super(LearnedQuadEnv, self).reset(*args, **kwargs))
         return self.state
 
     def _get_obs(self):
+        """ Returns the observation. It is different from the superclass since it is the embedded state."""
         return self.state
 
     def render(self, mode='human'):
         print('UNIMPLEMENTED RENDER')
         pass
 
+
 def to_embed_state(x):
-    """ converts from q, qdot to cosq, sinq, qdot"""
-    return np.array([np.cos(x[0]), np.sin(x[0]), x[1]])
+    """ converts from state to embedded angle state"""
+    # TODO
+    raise Exception('Unimplemented')
+    return np.array([np.cos(x[0]), np.sin(x[0]), x[1]])  # TODO

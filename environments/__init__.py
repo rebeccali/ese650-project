@@ -2,7 +2,7 @@ from gym.envs.registration import register
 
 
 # UPDATE THIS IF YOU ADD A LEARNED MODEL
-learned_models = ['LearnedPendulum-v0']
+learned_models = ['LearnedPendulum-v0', 'LearnedQuad-v0']
 
 register(
     id='My_FA_Acrobot-v0',

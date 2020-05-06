@@ -1,10 +1,4 @@
-# Symplectic ODE-Net | 2019
-# Yaofeng Desmond Zhong, Biswadip Dey, Amit Chakraborty
-
-# code structure follows the style of HNN by Sam Greydanus
-# https://github.com/greydanus/hamiltonian-nn
-
-# Cells are seperated by the vscode convention '#%%'
+# Analyze learned simple quad
 
 # %%
 import argparse
@@ -18,7 +12,7 @@ from symplectic.plot_single_embed import plot_control, plot_energy_variation, pl
     plot_sin_cos_sanity_check, plot_model_vs_true_ivp
 from symplectic.utils import ObjectView
 
-EXPERIMENT_DIR = '/experiment_single_embed'
+EXPERIMENT_DIR = '/experiment_simple_quad'
 sys.path.append(EXPERIMENT_DIR)
 
 # %%
@@ -28,7 +22,7 @@ FORMAT = 'pdf'
 
 def get_args():
     """ Arguments to fetch a model. Must match existing trained models exactly."""
-    return learned_params.get_pendulum_args(EXPERIMENT_DIR, 'DDP-Pendulum-v0')
+    return learned_params.get_quad_args(EXPERIMENT_DIR, 'Simple-Quad-v0')
 
 def plot_learning(base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats, DPI):
     base_test_loss = base_ode_stats['test_loss']
@@ -83,7 +77,7 @@ def main(args):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Run analysis on single embed test')
+    parser = argparse.ArgumentParser(description='Run analysis on simple quad test')
     parser.add_argument('--test', action='store_true', help='Run as test')
     args = parser.parse_args()
 

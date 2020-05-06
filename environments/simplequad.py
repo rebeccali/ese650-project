@@ -39,12 +39,20 @@ class SimpleQuadEnv(gym.Env):
 
         self.goal = quadrotor_params.xf
 
+        self.training_mode = False
+
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
-        if reset_state is None:
-            self.state = np.zeros((quadrotor_params.states,))
+        if self.training_mode:
+            # TODO: set reasonable "high" state to sample univormly from
+            high = np.ones(self.states)
+            self.state = self.np_random.uniform(low=-high, high=high)
+            self.last_u = None
         else:
-            self.state = reset_state
+            if reset_state is None:
+                self.state = np.zeros((self.states,))
+            else:
+                self.state = reset_state
         return self.state
 
     def step(self, u):
@@ -98,7 +106,8 @@ class SimpleQuadEnv(gym.Env):
         self.state = new_state
 
         reward = self.get_ddp_reward(u)
-
+        if self.training_mode:
+            return self._get_obs(), reward, False, {}
         return self.state, reward
 
     def get_ddp_reward(self, u):
@@ -110,17 +119,17 @@ class SimpleQuadEnv(gym.Env):
         cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u.T.dot(R).dot(u)
 
         return cost
-    
+
     def get_H(self):
         dx = self.state[3:6]
         dth = self.state[9:12]
         z = self.state[2]
-        
+
         trans = (1/2)*self.m*np.dot(dx,dx)
         rot = (1/2)*(dth.T @ self.J) @ dth
-        
+
         return trans + rot - self.m*self.g*z
-    
+
     def get_pdot(self):
         pdot = np.zeros((6,))
         pdot[2] = self.m*self.g
@@ -225,6 +234,16 @@ class SimpleQuadEnv(gym.Env):
 
         return A, B
 
+    def _get_obs(self):
+        # TODO: Convert state to angle state
+        raise Exception('Unimplemented')
+        # theta, thetadot = self.state
+        # return np.array([np.cos(theta), np.sin(theta), thetadot])
+
+    def set_training_mode(self):
+        """ Converts model to training mode """
+        self.training_mode = True
+
     def plot(self, xf, x, u, costvec):
 
         # translational states
@@ -311,3 +330,7 @@ class SimpleQuadEnv(gym.Env):
 
         plt.subplot(414)
         plt.plot(u[3, :].T)
+
+    def render(self, mode='human'):
+        print('UNIMPLEMENTED RENDER')
+        pass

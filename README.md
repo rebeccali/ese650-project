@@ -19,6 +19,9 @@ Learn hamiltonian without symplectic structure:
 Take advantage of hamiltonian structure:
 `python experiment-single-force/train.py --verbose --structure --total_steps 50`
 
+You can also just run the training script, which will only train naive baseline and the structured symplectic models:
+`./train_pendulum.sh`
+
 ## Adding a dependency:
 You should be using Conda. After installing your new dependency using conda or pip, run at the top level:
 
@@ -37,4 +40,4 @@ conda env create -f environment.yml -n sympodenet
 conda activate sympodenet
 ```
 3. To test that everything works, run
-`python experiment-single-force/train.py --verbose --baseline --total_steps 100`
+`./test.sh`

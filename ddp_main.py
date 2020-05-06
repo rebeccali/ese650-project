@@ -10,10 +10,13 @@ import argparse
 def main(args):
 
     if args.env in environments.learned_models:
-        # TODO make this less manual
+        # TODO(rebecca) make this less manual
         if args.env == 'LearnedPendulum-v0':
             from environments.learned_pendulum import LearnedPendulumEnv
             env = LearnedPendulumEnv(model_type='structure')
+        elif args.env == 'LearnedQuad-v0':
+            from environments.learned_quad import LearnedQuadEnv
+            env = LearnedQuadEnv(model_type='structure')
         else:
             raise RuntimeError('Do not recognized learned model %s ' % args.env)
     else:
@@ -31,7 +34,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    envs = ['DDP-Pendulum-v0', 'Simple-Quad-v0', 'LearnedPendulum-v0']
+    envs = ['DDP-Pendulum-v0', 'Simple-Quad-v0', 'LearnedPendulum-v0', 'LearnedQuad-v0']
     # Parse Command Line Arguments
     # e.g. python ddp_main.py --test
     parser = argparse.ArgumentParser(description='Run DDP')
