@@ -8,7 +8,7 @@ python ddp_main.py --test --env LearnedPendulum-v0
 python ddp_main.py --test --env DDP-Pendulum-v0
 python quad_main.py --test
 python analyze-single-embed.py --test
-python scripts/run_learned_pendulum.py
+python scripts/verify_pendulum_dynamics.py --test --horizon 0.2
 set +x
 GREEN='\033[0;32m'
 printf "${GREEN}Completed all code tests successfully.\n"
