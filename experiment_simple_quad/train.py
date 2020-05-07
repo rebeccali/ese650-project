@@ -89,8 +89,8 @@ def train(args):
             model = SymODEN_T(args.num_angle, H_net=nn_model, M_net=M_net, g_net=g_net, device=device,
                               baseline=args.baseline, naive=args.naive)
     elif args.structure == True and args.baseline == False and args.naive == False:
-        V_net = MLP(2 * args.num_angle, 50, 1).to(device)
-        model = SymODEN_T(args.num_angle, M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=args.baseline,
+        V_net = MLP(4, 50, 1).to(device)
+        model = SymODEN_Q(args.num_angle, M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=args.baseline,
                           structure=True).to(device)
     else:
         raise RuntimeError('argument *structure* is set to true, no *baseline* or *naive*!')
