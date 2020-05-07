@@ -385,7 +385,7 @@ class SymODEN_Q(torch.nn.Module):
                 ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
                         + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
 
-
+            # Think this should output the derivative of the input - i.e. embedded angles - but not sure
             return torch.cat((-sin_q * dq, cos_q * dq, ddq, zero_vec), dim=1)
 
 
