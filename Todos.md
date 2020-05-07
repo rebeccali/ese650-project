@@ -9,6 +9,7 @@
     * new experiment-simple-quad folder, with train.py and data.py (rebecca) Status: Made, not tested
     * new analyze-simple-quad.py (rebecca) Status: Made, not tested
     * make learnquad environment (rebecca) Status: Made, not tested
+    * move over stuff from simplequad to quad2d (rebecca)
 9. plots???
     * what we have: energy comparison, test loss during training time,
     * what we need:

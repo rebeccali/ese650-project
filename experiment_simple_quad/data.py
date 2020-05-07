@@ -19,7 +19,6 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
         print("Making a dataset of %s observations." % _env_name)
     env = gym.make(env_name)
     env.seed(seed)
-    # Needed for DDP. TODO:remove.
     env.set_training_mode()
 
     trajs = []
@@ -34,6 +33,7 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
                 traj.append(x)
             traj = np.stack(traj)
             # TODO: add speed constraint
+            raise Exception('Unimplemented speed constraint ')
             # if np.amax(traj[:, 2]) < env.max_speed - 0.001 and np.amin(traj[:, 2]) > -env.max_speed + 0.001:
             #     valid = True
         trajs.append(traj)
