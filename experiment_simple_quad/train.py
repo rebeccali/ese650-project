@@ -14,7 +14,7 @@ PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PARENT_DIR)
 
 from symplectic.nn_models import MLP, PSD
-from symplectic.symoden import SymODEN_T
+from symplectic.symoden import SymODEN_Q
 from experiment_single_embed.data import get_dataset, arrange_data
 from symplectic.utils import L2_loss, to_pickle
 
@@ -72,21 +72,23 @@ def train(args):
         if args.naive and args.baseline:
             raise RuntimeError('argument *baseline* and *naive* cannot both be true')
         elif args.naive:
+            #TODO: fix dimension stuff
             input_dim = 3 * args.num_angle + 1
             output_dim = 3 * args.num_angle
             nn_model = MLP(input_dim, 800, output_dim, args.nonlinearity).to(device)
-            model = SymODEN_T(args.num_angle, H_net=nn_model, device=device, baseline=args.baseline, naive=args.naive)
+            model = SymODEN_Q(args.num_angle, H_net=nn_model, device=device, baseline=args.baseline, naive=args.naive)
         elif args.baseline:
+            #TODO: fix dimension stuff
             input_dim = 3 * args.num_angle + 1
             output_dim = 2 * args.num_angle
             nn_model = MLP(input_dim, 600, output_dim, args.nonlinearity).to(device)
-            model = SymODEN_T(args.num_angle, H_net=nn_model, M_net=M_net, device=device, baseline=args.baseline,
+            model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, device=device, baseline=args.baseline,
                               naive=args.naive)
         else:
             input_dim = 3 * args.num_angle
             output_dim = 1
             nn_model = MLP(input_dim, 500, output_dim, args.nonlinearity).to(device)
-            model = SymODEN_T(args.num_angle, H_net=nn_model, M_net=M_net, g_net=g_net, device=device,
+            model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, g_net=g_net, device=device,
                               baseline=args.baseline, naive=args.naive)
     elif args.structure == True and args.baseline == False and args.naive == False:
         V_net = MLP(4, 50, 1).to(device)
