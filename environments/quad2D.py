@@ -201,11 +201,9 @@ class Quad2DEnv(gym.Env):
         self.training_mode = True
 
     def _get_obs(self):
-        # TODO(walker): Convert state to angle state
-        raise Exception('Unimplemented')
-        # theta, thetadot = self.state
-        # return np.array([np.cos(theta), np.sin(theta), thetadot])
-
+        x,y,dx,dy,th,dth = self.state
+        return np.array([x,y,dx,dy,np.cos(th),np.sin(th),dth])
+        
     def render(self, mode='human'):
         print('UNIMPLEMENTED RENDER')
         pass
