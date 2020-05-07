@@ -1,8 +1,8 @@
 import gym
 from gym import spaces
 from gym.utils import seeding
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from environments import pendulum_mpc_params
 import pdb
 
@@ -17,7 +17,7 @@ class PendulumEnv(gym.Env):
         self.I = pendulum_mpc_params.I
 
         self.timesteps = pendulum_mpc_params.timesteps
-        self.total_time = pendulum_mpc_params.total_time
+        # self.total_time = pendulum_mpc_params.total_time
 
         self.num_iter = pendulum_mpc_params.num_iter
 

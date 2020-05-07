@@ -7,6 +7,8 @@ import environments
 import argparse
 
 
+
+
 def main(args):
 
     if args.env in environments.learned_models:
@@ -23,11 +25,13 @@ def main(args):
         env = gym.make(args.env)
 
     num_iter = env.num_iter
+    timesteps = env.timesteps
+
     if args.test:
         num_iter = 3
         print('Running in test mode.')
     print('Using %s environment for %d iterations' % (args.env, num_iter))
-    costvec, u, x, xf = run_ddp(env, num_iter)
+    costvec, u, x, xf = run_ddp(env, num_iter, timesteps)
     env.plot(xf, x, u, costvec)
     if not args.test:
         plt.show()
