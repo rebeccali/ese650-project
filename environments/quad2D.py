@@ -39,12 +39,20 @@ class Quad2DEnv(gym.Env):
 
         self.goal = quad2D_params.xf
 
+        self.training_mode = False
+
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
-        if reset_state is None:
-            self.state = np.zeros((quad2D_params.states,))
+        if self.training_mode:
+            # TODO(walker): set reasonable "high" state to sample univormly from
+            high = np.ones(self.states)
+            self.state = self.np_random.uniform(low=-high, high=high)
+            self.last_u = None
         else:
-            self.state = reset_state
+            if reset_state is None:
+                self.state = np.zeros((self.states,))
+            else:
+                self.state = reset_state
         return self.state
 
     def step(self, u):
@@ -53,27 +61,27 @@ class Quad2DEnv(gym.Env):
 
         state = self.state
         th = state[4]
-        R = np.array([[np.cos(th),-np.sin(th)],[np.sin(th),np.cos(th)]])
-        #print(R)
-        
+        R = np.array([[np.cos(th), -np.sin(th)], [np.sin(th), np.cos(th)]])
+        # print(R)
+
         state_dot = np.zeros((quad2D_params.states,))
 
         state_dot[0:2] = state[2:4]
         state_dot[4] = state[5]
 
-        pos_dd = (1/self.m) *R @ np.array([[0],[u[0]+u[1]]]) - np.array([[0],[self.g]])
+        pos_dd = (1 / self.m) * R @ np.array([[0], [u[0] + u[1]]]) - np.array([[0], [self.g]])
 
-        #print(pos_dd.reshape((2,)))
+        # print(pos_dd.reshape((2,)))
         state_dot[2:4] = np.squeeze(pos_dd)
-        
-        state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
-        
-        #print(state_dot)
+
+        state_dot[5] = 1 / self.J * (u[1] - u[0]) * self.L
+
+        # print(state_dot)
         state_dot[2:4] = np.squeeze(pos_dd)
-        
-        state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
+
+        state_dot[5] = 1 / self.J * (u[1] - u[0]) * self.L
         print(state_dot)
-        
+
         # propogate state forward using state_dot
         new_state = self.state + self.dt * state_dot
 
@@ -81,6 +89,8 @@ class Quad2DEnv(gym.Env):
 
         reward = self.get_ddp_reward(u)
 
+        if self.training_mode:
+            return self._get_obs(), reward, False, {}
         return self.state, reward
 
     def get_ddp_reward(self, u):
@@ -92,24 +102,24 @@ class Quad2DEnv(gym.Env):
         cost = 0.5 * delta_x.T.dot(Q).dot(delta_x) + 0.5 * u.T.dot(R).dot(u)
 
         return cost
-    
+
     def get_H(self):
         dx = self.state[2:4]
         dth = self.state[5]
         y = self.state[1]
-        
-        trans = (1/2)*self.m*np.dot(dx,dx)
-        rot = (1/2)*(dth**2) * self.J
-        
-        return trans + rot + self.m*self.g*y
-    
+
+        trans = (1 / 2) * self.m * np.dot(dx, dx)
+        rot = (1 / 2) * (dth ** 2) * self.J
+
+        return trans + rot + self.m * self.g * y
+
     def get_pdot(self):
         pdot = np.zeros((3,))
-        pdot[1] = -self.m*self.g
+        pdot[1] = -self.m * self.g
         return pdot
 
     def get_qdot(self):
-        return np.concatenate((self.state[2:4],self.state[5]))
+        return np.concatenate((self.state[2:4], self.state[5]))
 
     def set_goal(self, goal):
         self.goal = goal
@@ -121,18 +131,18 @@ class Quad2DEnv(gym.Env):
         m = quad2D_params.m
         L = quad2D_params.L
         J = quad2D_params.J
-        
+
         th = x[4]
         u1 = u[0]
         u2 = u[1]
-        
-        A = np.zeros((6,6))
-        
-        A[3:6,3:6] = np.eye(3)
-        A[3,5] = -np.cos(th)*(u1+u2)
-        A[4,5] = -np.sin(th)*(u1+u2)
-        B = np.zeros((6,2))
-        B[3:6,:] = np.array([[-np.sin(th), -np.sin(th)],[np.cos(th),np.cos(th)],[-L/J, L/J]])
+
+        A = np.zeros((6, 6))
+
+        A[3:6, 3:6] = np.eye(3)
+        A[3, 5] = -np.cos(th) * (u1 + u2)
+        A[4, 5] = -np.sin(th) * (u1 + u2)
+        B = np.zeros((6, 2))
+        B[3:6, :] = np.array([[-np.sin(th), -np.sin(th)], [np.cos(th), np.cos(th)], [-L / J, L / J]])
 
         return A, B
 
@@ -184,3 +194,16 @@ class Quad2DEnv(gym.Env):
         plt.subplot(212)
         plt.plot(u[1, :].T)
 
+    def set_training_mode(self):
+        """ Converts model to training mode """
+        self.training_mode = True
+
+    def _get_obs(self):
+        # TODO(walker): Convert state to angle state
+        raise Exception('Unimplemented')
+        # theta, thetadot = self.state
+        # return np.array([np.cos(theta), np.sin(theta), thetadot])
+
+    def render(self, mode='human'):
+        print('UNIMPLEMENTED RENDER')
+        pass
