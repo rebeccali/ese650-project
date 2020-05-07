@@ -304,7 +304,7 @@ class SymODEN_Q(torch.nn.Module):
     Architecture for 2D quad: input (x, y, x_dot, y_dot, cos q, sin q, q_dot, u1, u2,
     where q represents angle, u1 and u2 represent input to left and right prop, respectively.
     """
-    def __init__(self, input_dim, H_net=None, M_net=None, V_net=None, g_net=None,
+    def __init__(self, H_net=None, M_net=None, V_net=None, g_net=None,
             device=None, baseline=False, structure=False, naive=False, u_dim=1):
         super(SymODEN_Q, self).__init__()
         self.baseline = baseline
@@ -321,7 +321,8 @@ class SymODEN_Q(torch.nn.Module):
 
         self.device = device
         self.nfe = 0
-        self.input_dim = input_dim
+        
+        self.input_dim = 0 #TODO: remove completely
 
     def forward(self, t, x):
         with torch.enable_grad():
