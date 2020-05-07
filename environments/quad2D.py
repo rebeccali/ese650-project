@@ -72,7 +72,6 @@ class Quad2DEnv(gym.Env):
         state_dot[2:4] = np.squeeze(pos_dd)
         
         state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
-        print(state_dot)
         
         # propogate state forward using state_dot
         new_state = self.state + self.dt * state_dot
