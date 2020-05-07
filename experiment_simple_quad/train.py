@@ -23,7 +23,7 @@ import time
 
 def get_args():
     parser = argparse.ArgumentParser(description=None)
-    parser.add_argument('--num_angle', default=1, type=int, help='number of generalized coordinates')
+    #parser.add_argument('--num_angle', default=1, type=int, help='number of generalized coordinates')
     parser.add_argument('--learn_rate', default=1e-3, type=float, help='learning rate')
     parser.add_argument('--nonlinearity', default='tanh', type=str, help='neural net nonlinearity')
     parser.add_argument('--total_steps', default=1000, type=int, help='number of gradient steps')
@@ -66,8 +66,8 @@ def train(args):
     if args.verbose:
         print("Start training with num of points = {} and solver {}.".format(args.num_points, args.solver))
 
-    M_net = PSD(2 * args.num_angle, 300, args.num_angle).to(device)
-    g_net = MLP(2 * args.num_angle, 200, args.num_angle).to(device)
+    M_net = PSD(4, 300, 3).to(device) #(input dim, hidden dim, diagonal dim of output matrix)
+    g_net = MLP(4, 200, 2).to(device) #straight up MLP (input dim, hidden dim, output dim)
     if args.structure == False:
         if args.naive and args.baseline:
             raise RuntimeError('argument *baseline* and *naive* cannot both be true')
