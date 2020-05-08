@@ -84,7 +84,7 @@ def train(args):
             nn_model = MLP(input_dim, 600, output_dim, args.nonlinearity).to(device)
             model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, device=device, baseline=args.baseline,
                               naive=args.naive)
-        else:
+        else:#unstructured
             input_dim = 3 * args.num_angle
             output_dim = 1
             nn_model = MLP(input_dim, 500, output_dim, args.nonlinearity).to(device)

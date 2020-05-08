@@ -335,12 +335,9 @@ class SymODEN_Q(torch.nn.Module):
 
             cos_q_sin_q, q_dot, u = torch.split(x, [2*self.input_dim, 1*self.input_dim, self.u_dim], dim=1)
             M_q_inv = self.M_net(cos_q_sin_q)
-            if self.input_dim == 1:
-                p = q_dot / M_q_inv
-            else:
-                # assert 1==0
-                q_dot_aug = torch.unsqueeze(q_dot, dim=2)
-                p = torch.squeeze(torch.matmul(torch.inverse(M_q_inv), q_dot_aug), dim=2)
+            # assert 1==0
+            q_dot_aug = torch.unsqueeze(q_dot, dim=2)
+            p = torch.squeeze(torch.matmul(torch.inverse(M_q_inv), q_dot_aug), dim=2)
             cos_q_sin_q_p = torch.cat((cos_q_sin_q, p), dim=1)
             cos_q_sin_q, p = torch.split(cos_q_sin_q_p, [2*self.input_dim, 1*self.input_dim], dim=1)
             M_q_inv = self.M_net(cos_q_sin_q)
@@ -353,38 +350,28 @@ class SymODEN_Q(torch.nn.Module):
             else:
                 if self.structure:
                     V_q = self.V_net(cos_q_sin_q)
-                    if self.input_dim == 1:
-                        H = p * p * M_q_inv/ 2.0 + V_q
-                    else:
-                        p_aug = torch.unsqueeze(p, dim=2)
-                        H = torch.squeeze(torch.matmul(torch.transpose(p_aug, 1, 2), torch.matmul(M_q_inv, p_aug)))/2.0 + torch.squeeze(V_q)
+                    p_aug = torch.unsqueeze(p, dim=2)
+                    H = torch.squeeze(torch.matmul(torch.transpose(p_aug, 1, 2), torch.matmul(M_q_inv, p_aug)))/2.0 + torch.squeeze(V_q)
                 else:
                     H = self.H_net(cos_q_sin_q_p)
                 dH = torch.autograd.grad(H.sum(), cos_q_sin_q_p, create_graph=True)[0]
                 dHdcos_q, dHdsin_q, dHdp= torch.split(dH, [self.input_dim, self.input_dim, self.input_dim], dim=1)
                 g_q = self.g_net(cos_q_sin_q)
 
-                if self.u_dim == 1:
-                    # broadcast multiply when angle is more than 1
-                    F = g_q * u
-                else:
-                    F = torch.squeeze(torch.matmul(g_q, torch.unsqueeze(u, dim=2)))
+
+                F = torch.squeeze(torch.matmul(g_q, torch.unsqueeze(u, dim=2)))
 
                 dq = dHdp
                 dp = sin_q * dHdcos_q - cos_q * dHdsin_q + F
 
-            if self.input_dim==1:
-                dM_inv = torch.autograd.grad(M_q_inv.sum(), cos_q_sin_q, create_graph=True)[0]
-                dM_inv_dt = (dM_inv * torch.cat((-sin_q * dq, cos_q * dq), dim=1)).sum(-1).view(-1, 1)
-                ddq =  M_q_inv * dp  + dM_inv_dt * p
-            else:
-                dM_inv_dt = torch.zeros_like(M_q_inv)
-                for row_ind in range(self.input_dim):
-                    for col_ind in range(self.input_dim):
-                        dM_inv = torch.autograd.grad(M_q_inv[:, row_ind, col_ind].sum(), cos_q_sin_q, create_graph=True)[0]
-                        dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((-sin_q * dq, cos_q * dq), dim=1)).sum(-1)
-                ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
-                        + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
+
+            dM_inv_dt = torch.zeros_like(M_q_inv)
+            for row_ind in range(self.input_dim):
+                for col_ind in range(self.input_dim):
+                    dM_inv = torch.autograd.grad(M_q_inv[:, row_ind, col_ind].sum(), cos_q_sin_q, create_graph=True)[0]
+                    dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((-sin_q * dq, cos_q * dq), dim=1)).sum(-1)
+            ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
+                    + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
 
             # Think this should output the derivative of the input - i.e. embedded angles - but not sure
             return torch.cat((-sin_q * dq, cos_q * dq, ddq, zero_vec), dim=1)
