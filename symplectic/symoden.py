@@ -305,7 +305,7 @@ class SymODEN_Q(torch.nn.Module):
     where q represents angle, u1 and u2 represent input to left and right prop, respectively.
     """
     def __init__(self, H_net=None, M_net=None, V_net=None, g_net=None,
-            device=None, baseline=False, structure=False, naive=False, u_dim=1):
+            device=None, baseline=False, structure=False, naive=False, u_dim=2):
         super(SymODEN_Q, self).__init__()
         self.baseline = baseline
         self.structure = structure
@@ -322,26 +322,28 @@ class SymODEN_Q(torch.nn.Module):
         self.device = device
         self.nfe = 0
         
-        self.input_dim = 0 #TODO: remove completely
+        self.input_dim = 1 #TODO: remove completely
 
     def forward(self, t, x):
+        # input t is not used
         with torch.enable_grad():
             self.nfe += 1
+            
             bs = x.shape[0]
             zero_vec = torch.zeros(bs, self.u_dim, dtype=torch.float32, device =self.device)
 
             if self.naive:
                 return torch.cat((self.H_net(x), zero_vec), dim=1)
 
-            cos_q_sin_q, q_dot, u = torch.split(x, [2*self.input_dim, 1*self.input_dim, self.u_dim], dim=1)
-            M_q_inv = self.M_net(cos_q_sin_q)
+            q_aug, q_dot, u = torch.split(x, [4, 3, self.u_dim], dim=1)
+            M_q_inv = self.M_net(q_aug)
             # assert 1==0
             q_dot_aug = torch.unsqueeze(q_dot, dim=2)
             p = torch.squeeze(torch.matmul(torch.inverse(M_q_inv), q_dot_aug), dim=2)
-            cos_q_sin_q_p = torch.cat((cos_q_sin_q, p), dim=1)
-            cos_q_sin_q, p = torch.split(cos_q_sin_q_p, [2*self.input_dim, 1*self.input_dim], dim=1)
-            M_q_inv = self.M_net(cos_q_sin_q)
-            cos_q, sin_q = torch.chunk(cos_q_sin_q, 2,dim=1)
+            q_aug_p = torch.cat((q_aug, p), dim=1)
+            q_aug, p = torch.split(q_aug_p, [2*self.input_dim, 1*self.input_dim], dim=1)
+            M_q_inv = self.M_net(q_aug)
+            cos_q, sin_q = torch.chunk(q_aug, 2,dim=1)
 
             # M_q_inv = 3 * torch.ones_like(u)
 
@@ -349,14 +351,14 @@ class SymODEN_Q(torch.nn.Module):
                 dq, dp=  torch.chunk(self.H_net(x), 2, dim=1)
             else:
                 if self.structure:
-                    V_q = self.V_net(cos_q_sin_q)
+                    V_q = self.V_net(q_aug)
                     p_aug = torch.unsqueeze(p, dim=2)
                     H = torch.squeeze(torch.matmul(torch.transpose(p_aug, 1, 2), torch.matmul(M_q_inv, p_aug)))/2.0 + torch.squeeze(V_q)
                 else:
-                    H = self.H_net(cos_q_sin_q_p)
-                dH = torch.autograd.grad(H.sum(), cos_q_sin_q_p, create_graph=True)[0]
+                    H = self.H_net(q_aug_p)
+                dH = torch.autograd.grad(H.sum(), q_aug_p, create_graph=True)[0]
                 dHdcos_q, dHdsin_q, dHdp= torch.split(dH, [self.input_dim, self.input_dim, self.input_dim], dim=1)
-                g_q = self.g_net(cos_q_sin_q)
+                g_q = self.g_net(q_aug)
 
 
                 F = torch.squeeze(torch.matmul(g_q, torch.unsqueeze(u, dim=2)))
@@ -368,7 +370,7 @@ class SymODEN_Q(torch.nn.Module):
             dM_inv_dt = torch.zeros_like(M_q_inv)
             for row_ind in range(self.input_dim):
                 for col_ind in range(self.input_dim):
-                    dM_inv = torch.autograd.grad(M_q_inv[:, row_ind, col_ind].sum(), cos_q_sin_q, create_graph=True)[0]
+                    dM_inv = torch.autograd.grad(M_q_inv[:, row_ind, col_ind].sum(), q_aug, create_graph=True)[0]
                     dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((-sin_q * dq, cos_q * dq), dim=1)).sum(-1)
             ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
                     + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
