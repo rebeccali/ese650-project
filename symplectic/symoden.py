@@ -326,6 +326,7 @@ class SymODEN_Q(torch.nn.Module):
 
     def forward(self, t, x):
         # input t is not used
+        # x should be (batch size) x 9 torch tensor: [x,y,dx,dy,costh,sinth,dth,u1,u2]
         with torch.enable_grad():
             self.nfe += 1
             
@@ -341,7 +342,7 @@ class SymODEN_Q(torch.nn.Module):
             q_dot_aug = torch.unsqueeze(q_dot, dim=2)
             p = torch.squeeze(torch.matmul(torch.inverse(M_q_inv), q_dot_aug), dim=2)
             q_aug_p = torch.cat((q_aug, p), dim=1)
-            q_aug, p = torch.split(q_aug_p, [2*self.input_dim, 1*self.input_dim], dim=1)
+            q_aug, p = torch.split(q_aug_p, [4, 3], dim=1)
             M_q_inv = self.M_net(q_aug)
             cos_q, sin_q = torch.chunk(q_aug, 2,dim=1)
 

@@ -29,7 +29,8 @@ g_net = MLP(4, 200, 2).to(device)
 V_net = MLP(4, 50, 1).to(device)
 model = SymODEN_Q(M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=False, structure=True).to(device)
 
-x = torch.tensor([[1,2,3,4]])
+# test SymODEN_Q - x,y,dx,dy,costh,sinth,dth,u1,u2]
+x = torch.tensor([[1,2,0.1,0.2,0,1,0.1,1,1]])
 model.forward(0,x)
 
 
