@@ -30,7 +30,7 @@ def get_pendulum_args(EXPERIMENT_DIR, env):
             'seed': 0,
             'save_dir': '{}'.format(str(proj_dir) + EXPERIMENT_DIR),
             'fig_dir': '{}/figures'.format(proj_dir),
-            'num_points': 2,  # number of evaluation points by ode solver, including initial point
+            'num_points': 5,  # number of evaluation points by ode solver, including initial point
             'gpu': 0,
             'solver': 'rk4',
             'env': env,  # Name of the gym environment
