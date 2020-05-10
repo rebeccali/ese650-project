@@ -1,3 +1,5 @@
+import os
+
 import gym
 import gym.wrappers
 import numpy as np
@@ -9,7 +11,7 @@ from environments.utils import construct_env
 from experiment_single_embed.data import get_dataset
 from symplectic.nn_models import PSD, MLP
 from symplectic.symoden import SymODEN_T
-from symplectic.utils import from_pickle
+from symplectic.utils import from_pickle, to_pickle
 
 
 def get_model(args, baseline, structure, naive, device, verbose=True):
@@ -23,7 +25,10 @@ def get_model(args, baseline, structure, naive, device, verbose=True):
         Return:
             returns the neural network model, as well as the stats of the trained model.
     """
-
+    args.naive = naive
+    args.baseline = baseline
+    args.structure = structure
+    args.device = device
     M_input_dim = 2 * args.num_angle
     M_output_dim = args.num_angle
     M_hidden_dim = 300
@@ -70,17 +75,9 @@ def get_model(args, baseline, structure, naive, device, verbose=True):
     else:
         raise RuntimeError('argument *structure* is set to true, no *baseline* or *naive*!')
 
-    if naive:
-        label = '-naive_ode'
-    elif baseline:
-        label = '-baseline_ode'
-    else:
-        label = '-hnn_ode'
-    struct = '-struct' if structure else ''
-    model_path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
+    model_path, stats_path = get_model_stats_path(args)
     try:
         model.load_state_dict(torch.load(model_path, map_location=device))
-        stats_path = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
         stats = from_pickle(stats_path)
     except:
         import glob
@@ -241,9 +238,12 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
 
 
 def get_all_models(args, device, verbose=True):
-    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, device=device, verbose=verbose)
-    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device, verbose=verbose)
-    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device, verbose=verbose)
+    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, device=device,
+                                                 verbose=verbose)
+    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device,
+                                               verbose=verbose)
+    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device,
+                                                     verbose=verbose)
     symoden_ode_struct_model, symoden_ode_struct_stats = get_model(args, baseline=False, structure=True, naive=False,
                                                                    device=device, verbose=verbose)
     return base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model
@@ -260,12 +260,16 @@ def print_model_stats(model, stats, model_name='Model'):
 
 
 def get_all_models_and_stats(args, device, verbose=True):
-    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, device=device, verbose=verbose)
-    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device, verbose=verbose)
-    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device, verbose=verbose)
+    naive_ode_model, naive_ode_stats = get_model(args, baseline=False, structure=False, naive=True, device=device,
+                                                 verbose=verbose)
+    base_ode_model, base_ode_stats = get_model(args, baseline=True, structure=False, naive=False, device=device,
+                                               verbose=verbose)
+    symoden_ode_model, symoden_ode_stats = get_model(args, baseline=False, structure=False, naive=False, device=device,
+                                                     verbose=verbose)
     symoden_ode_struct_model, symoden_ode_struct_stats = get_model(args, baseline=False, structure=True, naive=False,
                                                                    device=device, verbose=verbose)
     return base_ode_model, naive_ode_model, symoden_ode_model, symoden_ode_struct_model, base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats
+
 
 def get_model_parm_nums(model):
     total = sum([param.nelement() for param in model.parameters()])
@@ -300,3 +304,26 @@ def get_prediction_error(args, base_ode_model, device, naive_ode_model, symoden_
     print('SymODEN')
     print('Prediction error {:.4e} +/- {:.4e}'
           .format(np.mean(symoden_struct_pred_loss), np.std(symoden_struct_pred_loss)))
+
+
+def save_model(model, stats, args):
+    os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None
+    path, statspath = get_model_stats_path(args)
+    torch.save(model.state_dict(), path)
+    to_pickle(stats, statspath)
+    print('Saved model to %s and stats to %s.' % (path, statspath))
+    return path, statspath
+
+
+def get_model_stats_path(args):
+    if args.naive:
+        label = '-naive_ode'
+    elif args.baseline:
+        label = '-baseline_ode'
+    else:
+        label = '-hnn_ode'
+    struct = '-struct' if args.structure else ''
+    model_path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
+    stats_path = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver,
+                                                     args.num_points)
+    return model_path, stats_path

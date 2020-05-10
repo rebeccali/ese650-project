@@ -13,6 +13,7 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PARENT_DIR)
 
+from symplectic.analysis import save_model
 from symplectic.nn_models import MLP, PSD
 from symplectic.symoden import SymODEN_T
 from experiment_single_embed.data import get_dataset, arrange_data
@@ -184,19 +185,4 @@ if __name__ == "__main__":
     model, stats = train(args)
 
     if not args.test:
-        # save
-        os.makedirs(args.save_dir) if not os.path.exists(args.save_dir) else None
-        if args.naive:
-            label = '-naive_ode'
-        elif args.baseline:
-            label = '-baseline_ode'
-        else:
-            label = '-hnn_ode'
-        struct = '-struct' if args.structure else ''
-        # TODO(rebecca): refactor the path format to utils to be used by everything
-        path = '{}/{}{}{}-{}-p{}.tar'.format(args.save_dir, args.name, label, struct, args.solver, args.num_points)
-        torch.save(model.state_dict(), path)
-        statspath = '{}/{}{}{}-{}-p{}-stats.pkl'.format(args.save_dir, args.name, label, struct, args.solver,
-                                                        args.num_points)
-        to_pickle(stats, statspath)
-        print('Saved model to %s and stats to %s.' % (path, statspath))
+        save_model(model, stats, args)
