@@ -384,6 +384,7 @@ class SymODEN_Q(torch.nn.Module):
             return torch.cat((dx,dy, -sin_th * dth, cos_th * dth, ddq, zero_vec), dim=1)
 
 
+
     def get_H(self, x):
         self.nfe += 1
         bs = x.shape[0]
