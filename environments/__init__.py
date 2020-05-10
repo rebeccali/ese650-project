@@ -65,3 +65,8 @@ register(
     id='MPC-DDP-Circle-Quad-v0',
     entry_point='environments.circlequad_mpc:SimpleQuadEnv',
 )
+
+register(
+    id='Quad2D-v0',
+    entry_point = 'environments.quad2D:Quad2DEnv',
+    )
