@@ -73,20 +73,18 @@ def train(args):
         if args.naive and args.baseline:
             raise RuntimeError('argument *baseline* and *naive* cannot both be true')
         elif args.naive:
-            #TODO: fix dimension stuff
-            input_dim = 3 * args.num_angle + 1
-            output_dim = 3 * args.num_angle
+            input_dim = 9
+            output_dim = 7
             nn_model = MLP(input_dim, 800, output_dim, args.nonlinearity).to(device)
             model = SymODEN_Q(args.num_angle, H_net=nn_model, device=device, baseline=args.baseline, naive=args.naive)
         elif args.baseline:
-            #TODO: fix dimension stuff
-            input_dim = 3 * args.num_angle + 1
-            output_dim = 2 * args.num_angle
+            input_dim = 9
+            output_dim = 6
             nn_model = MLP(input_dim, 600, output_dim, args.nonlinearity).to(device)
             model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, device=device, baseline=args.baseline,
                               naive=args.naive)
         else:#unstructured
-            input_dim = 3 * args.num_angle
+            input_dim = 7
             output_dim = 1
             nn_model = MLP(input_dim, 500, output_dim, args.nonlinearity).to(device)
             model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, g_net=g_net, device=device,

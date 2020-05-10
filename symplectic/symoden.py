@@ -334,6 +334,7 @@ class SymODEN_Q(torch.nn.Module):
             zero_vec = torch.zeros(bs, self.u_dim, dtype=torch.float32, device =self.device)
 
             if self.naive:
+                #niave H-net should have input dim 9, output dim 7
                 return torch.cat((self.H_net(x), zero_vec), dim=1)
 
             q_aug, q_dot, u = torch.split(x, [4, 3, self.u_dim], dim=1)
@@ -349,6 +350,7 @@ class SymODEN_Q(torch.nn.Module):
             # M_q_inv = 3 * torch.ones_like(u)
 
             if self.baseline:
+                #baseline H-net should have input dim 9, output dim 6
                 dq, dp=  torch.chunk(self.H_net(x), 2, dim=1)
             else:
                 if self.structure:
@@ -356,6 +358,7 @@ class SymODEN_Q(torch.nn.Module):
                     p_aug = torch.unsqueeze(p, dim=2) #check shape of P and mult by M makes sense
                     H = torch.squeeze(torch.matmul(torch.transpose(p_aug, 1, 2), torch.matmul(M_q_inv, p_aug)))/2.0 + torch.squeeze(V_q)
                 else:
+                    #unstructure H-net should have input dim 7, output dim 1
                     H = self.H_net(q_aug_p)
                 dH = torch.autograd.grad(H.sum(), q_aug_p, create_graph=True)[0]
                 dH_dx, dH_dy, dHdcos_th, dHdsin_th, dHdp= torch.split(dH, [1,1,1,1,3], dim=1)
