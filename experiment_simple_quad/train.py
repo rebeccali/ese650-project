@@ -13,9 +13,9 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PARENT_DIR)
 
-from symplectic.nn_models import MLP, PSD
+from symplectic.nn_models import MLP, PSD, MatrixNet
 from symplectic.symoden import SymODEN_Q
-from experiment_single_embed.data import get_dataset, arrange_data
+from experiment_simple_quad.data import get_dataset, arrange_data
 from symplectic.utils import L2_loss, to_pickle
 
 import time
@@ -67,7 +67,7 @@ def train(args):
         print("Start training with num of points = {} and solver {}.".format(args.num_points, args.solver))
 
     M_net = PSD(4, 300, 3).to(device) #(input dim, hidden dim, diagonal dim of output matrix)
-    g_net = MLP(4, 200, 6, shape=(3,2)).to(device) #straight up MLP (input dim, hidden dim, output dim)
+    g_net = MatrixNet(4, 200, 6, shape=(3,2)).to(device) #straight up MLP (input dim, hidden dim, output dim)
 
     if args.structure == False:
         if args.naive and args.baseline:
@@ -76,22 +76,22 @@ def train(args):
             input_dim = 9
             output_dim = 7
             nn_model = MLP(input_dim, 800, output_dim, args.nonlinearity).to(device)
-            model = SymODEN_Q(args.num_angle, H_net=nn_model, device=device, baseline=args.baseline, naive=args.naive)
+            model = SymODEN_Q(H_net=nn_model, device=device, baseline=args.baseline, naive=args.naive)
         elif args.baseline:
             input_dim = 9
             output_dim = 6
             nn_model = MLP(input_dim, 600, output_dim, args.nonlinearity).to(device)
-            model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, device=device, baseline=args.baseline,
+            model = SymODEN_Q(H_net=nn_model, M_net=M_net, device=device, baseline=args.baseline,
                               naive=args.naive)
         else:#unstructured
             input_dim = 7
             output_dim = 1
             nn_model = MLP(input_dim, 500, output_dim, args.nonlinearity).to(device)
-            model = SymODEN_Q(args.num_angle, H_net=nn_model, M_net=M_net, g_net=g_net, device=device,
+            model = SymODEN_Q(H_net=nn_model, M_net=M_net, g_net=g_net, device=device,
                               baseline=args.baseline, naive=args.naive)
     elif args.structure == True and args.baseline == False and args.naive == False:
         V_net = MLP(4, 50, 1).to(device)
-        model = SymODEN_Q(args.num_angle, M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=args.baseline,
+        model = SymODEN_Q(M_net=M_net, V_net=V_net, g_net=g_net, device=device, baseline=args.baseline,
                           structure=True).to(device)
     else:
         raise RuntimeError('argument *structure* is set to true, no *baseline* or *naive*!')
@@ -102,7 +102,8 @@ def train(args):
     optim = torch.optim.Adam(model.parameters(), args.learn_rate, weight_decay=1e-4)
 
     # arrange data
-    us = [0.0, -1.0, 1.0, -2.0, 2.0]  # TODO fix
+    us = [[0.0, 0.0], [0.0, 1.0], [0.0, -1.0], [0.0, 2.0], [0.0, -2.0],
+            [1.0, 0.0], [-1.0, 0.0], [2.0, 0.0], [-2.0, 0.0]]
 
     data = get_dataset(seed=args.seed, timesteps=20,
                        save_dir=args.save_dir, us=us, samples=128)

@@ -9,7 +9,7 @@ from symplectic.utils import to_pickle, from_pickle
 import gym
 import environments
 
-_env_name = 'Simple-Quad-v0'
+_env_name = 'Quad2D-v0'
 
 
 def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
@@ -28,8 +28,8 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
             env.reset()
             traj = []
             for step in range(timesteps):
-                obs, _, _, _ = env.step([u])  # action
-                x = np.concatenate((obs, np.array([u])))
+                obs, _, _, _ = env.step(np.array(u))  # action
+                x = np.concatenate((obs, np.array(u)))
                 traj.append(x)
             traj = np.stack(traj)
             

@@ -1,5 +1,6 @@
 import gym
 from gym import spaces
+from gym.utils import seeding
 import numpy as np
 import matplotlib.pyplot as plt
 from environments import quad2D_params
@@ -42,12 +43,18 @@ class Quad2DEnv(gym.Env):
         self.goal = quad2D_params.xf
 
         self.training_mode = False
+        self.seed()
+        
+    
+    def seed(self, seed=None):
+        self.np_random, seed = seeding.np_random(seed)
+        return [seed]
 
     def reset(self, reset_state=None):
         # TODO: make this choose random values centered around hover
         if self.training_mode:
             # TODO(walker): set reasonable "high" state to sample univormly from
-            high = np.ones(self.states)
+            high = np.array([0.1,0.1,0.01,0.01,0.1,0.01])
             self.state = self.np_random.uniform(low=-high, high=high)
             self.last_u = None
         else:
