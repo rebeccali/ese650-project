@@ -83,11 +83,7 @@ class Quad2DEnv(gym.Env):
 
         
         state_dot[5] = 1/self.J*(u[1]-u[0])*self.L
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> 957fddf9a641b2c6a841502a4958a9e156b2f72f
         # propogate state forward using state_dot
         new_state = self.state + self.dt * state_dot
 
