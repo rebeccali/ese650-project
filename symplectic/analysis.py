@@ -5,6 +5,7 @@ from scipy.integrate import solve_ivp
 import torch
 from torchdiffeq import odeint
 
+from environments.utils import construct_env
 from experiment_single_embed.data import get_dataset
 from symplectic.nn_models import PSD, MLP
 from symplectic.symoden import SymODEN_T
@@ -147,7 +148,7 @@ def get_qp(x):
     return np.stack((q, p), axis=1)
 
 
-def simulate_control(device, symoden_ode_struct_model, args):
+def simulate_control(device, symoden_ode_struct_model, args, render=False):
     # %% [markdown]
     # ## Energy-based control
     # The following code saves the rendering as a mp4 video and as a GIF at the same time
@@ -160,11 +161,13 @@ def simulate_control(device, symoden_ode_struct_model, args):
     # angle info for simulation
     init_angle = 3.14
     u0 = 0.0
-    env = gym.make(args.env)
+    # env = gym.make(args.env)
+    env = construct_env(args.env)
     # record video
     env = gym.wrappers.Monitor(env, './videos/' + 'single-embed' + '/',
                                force=True)  # , video_callable=lambda x: True, force=True
     env.reset()
+    env.set_training_mode()
     env.env.state = np.array([init_angle, u0], dtype=np.float32)
     obs = env.env._get_obs()
     y = torch.tensor([obs[0], obs[1], obs[2], u0], requires_grad=True, device=device, dtype=torch.float32).view(1, 4)
@@ -172,8 +175,10 @@ def simulate_control(device, symoden_ode_struct_model, args):
     y_traj = []
     y_traj.append(y)
     frames = []
+
     for i in range(len(t_eval) - 1):
-        frames.append(env.render(mode='rgb_array'))
+        if render:
+            frames.append(env.render(mode='rgb_array'))
 
         cos_q_sin_q, q_dot, _ = torch.split(y, [2, 1, 1], dim=1)
         cos_q, sin_q = torch.chunk(cos_q_sin_q, 2, dim=1)

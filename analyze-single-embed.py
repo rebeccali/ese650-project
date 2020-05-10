@@ -63,19 +63,19 @@ def main(args):
     #custom plots
     plot_learning(base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats, DPI=DPI)
 
-    """
+
     # Plot Models
     #plot_sin_cos_sanity_check(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model)
     plot_learned_functions(symoden_ode_struct_model, device, DPI=DPI)
     plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp_y)
 
     # Plot control
-    t_eval, y_traj = simulate_control(device, symoden_ode_struct_model, args)
-    plot_control(t_eval, y_traj, args, DPI=DPI, FORMAT=FORMAT)
+    t_eval, y_traj = simulate_control(device, symoden_ode_struct_model, model_args)
+    plot_control(t_eval, y_traj, model_args, DPI=DPI, FORMAT=FORMAT)
 
     # Plot trajectory
     plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, true_ivp_y, DPI=DPI)
-    """
+
     if not args.test:
         plt.show()
 

@@ -1,26 +1,13 @@
 """ main file for quadrotor tracking with ddp controller """
+import argparse
+import matplotlib.pyplot as plt
 
 from ddp.ddp_functions import run_ddp
-import matplotlib.pyplot as plt
-import gym
-import environments
-import argparse
+from environments.utils import construct_env
 
 
 def main(args):
-
-    if args.env in environments.learned_models:
-        # TODO(rebecca) make this less manual
-        if args.env == 'LearnedPendulum-v0':
-            from environments.learned_pendulum import LearnedPendulumEnv
-            env = LearnedPendulumEnv(model_type='structure')
-        elif args.env == 'LearnedQuad-v0':
-            from environments.learned_quad import LearnedQuadEnv
-            env = LearnedQuadEnv(model_type='structure')
-        else:
-            raise RuntimeError('Do not recognized learned model %s ' % args.env)
-    else:
-        env = gym.make(args.env)
+    env = construct_env(args.env)
 
     num_iter = env.num_iter
     if args.test:

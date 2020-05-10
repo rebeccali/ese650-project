@@ -50,6 +50,8 @@ class PendulumEnv(gym.Env):
         self.training_mode = False  # Lets us know if we're in training mode
         self.seed()
 
+        self.viewer = None
+
     def set_training_mode(self):
         """ Converts model to training mode """
         self.training_mode = True
@@ -159,7 +161,6 @@ class PendulumEnv(gym.Env):
         return A, B
 
     def render(self, mode='human'):
-
         if self.viewer is None:
             from gym.envs.classic_control import rendering
             self.viewer = rendering.Viewer(500, 500)
