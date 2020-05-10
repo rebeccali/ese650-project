@@ -344,7 +344,7 @@ class SymODEN_Q(torch.nn.Module):
             q_aug_p = torch.cat((q_aug, p), dim=1)
             q_aug, p = torch.split(q_aug_p, [4, 3], dim=1)
             M_q_inv = self.M_net(q_aug)
-            cos_q, sin_q = torch.chunk(q_aug, 2,dim=1)
+            xy, cos_th, sin_th = torch.split(q_aug, [2,1,1] ,dim=1)
 
             # M_q_inv = 3 * torch.ones_like(u)
 
@@ -353,31 +353,35 @@ class SymODEN_Q(torch.nn.Module):
             else:
                 if self.structure:
                     V_q = self.V_net(q_aug)
-                    p_aug = torch.unsqueeze(p, dim=2)
+                    p_aug = torch.unsqueeze(p, dim=2) #check shape of P and mult by M makes sense
                     H = torch.squeeze(torch.matmul(torch.transpose(p_aug, 1, 2), torch.matmul(M_q_inv, p_aug)))/2.0 + torch.squeeze(V_q)
                 else:
                     H = self.H_net(q_aug_p)
                 dH = torch.autograd.grad(H.sum(), q_aug_p, create_graph=True)[0]
-                dHdcos_q, dHdsin_q, dHdp= torch.split(dH, [self.input_dim, self.input_dim, self.input_dim], dim=1)
+                dH_dx, dH_dy, dHdcos_th, dHdsin_th, dHdp= torch.split(dH, [1,1,1,1,3], dim=1)
                 g_q = self.g_net(q_aug)
 
-
-                F = torch.squeeze(torch.matmul(g_q, torch.unsqueeze(u, dim=2)))
+                F = torch.squeeze(torch.matmul(g_q, torch.unsqueeze(u, dim=2))) #3x1 tensor, squeezed
 
                 dq = dHdp
-                dp = sin_q * dHdcos_q - cos_q * dHdsin_q + F
-
-
+                dp_x = -dH_dx
+                dp_y = -dH_dy
+                #Equation 16 in the paper
+                dp_th = sin_th * dHdcos_th - cos_th * dHdsin_th
+                dp = torch.cat((dp_x, dp_y ,dp_th),dim=1) + F
+                       
+            
+            dx,dy,dth = torch.chunk(dq,3,dim=1)
             dM_inv_dt = torch.zeros_like(M_q_inv)
-            for row_ind in range(self.input_dim):
-                for col_ind in range(self.input_dim):
+            for row_ind in range(3):
+                for col_ind in range(3):
                     dM_inv = torch.autograd.grad(M_q_inv[:, row_ind, col_ind].sum(), q_aug, create_graph=True)[0]
-                    dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((-sin_q * dq, cos_q * dq), dim=1)).sum(-1)
+                    dM_inv_dt[:, row_ind, col_ind] = (dM_inv * torch.cat((dx,dy,-sin_th * dth, cos_th * dth), dim=1)).sum(-1)
             ddq = torch.squeeze(torch.matmul(M_q_inv, torch.unsqueeze(dp, dim=2)), dim=2) \
                     + torch.squeeze(torch.matmul(dM_inv_dt, torch.unsqueeze(p, dim=2)), dim=2)
 
-            # Think this should output the derivative of the input - i.e. embedded angles - but not sure
-            return torch.cat((-sin_q * dq, cos_q * dq, ddq, zero_vec), dim=1)
+            # should output the derivative of the input - i.e. embedded angles
+            return torch.cat((dx,dy, -sin_th * dth, cos_th * dth, ddq, zero_vec), dim=1)
 
 
     def get_H(self, x):

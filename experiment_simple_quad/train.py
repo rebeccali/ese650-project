@@ -67,7 +67,7 @@ def train(args):
         print("Start training with num of points = {} and solver {}.".format(args.num_points, args.solver))
 
     M_net = PSD(4, 300, 3).to(device) #(input dim, hidden dim, diagonal dim of output matrix)
-    g_net = MLP(4, 200, 2).to(device) #straight up MLP (input dim, hidden dim, output dim)
+    g_net = MLP(4, 200, 6, shape=(3,2)).to(device) #straight up MLP (input dim, hidden dim, output dim)
     if args.structure == False:
         if args.naive and args.baseline:
             raise RuntimeError('argument *baseline* and *naive* cannot both be true')
