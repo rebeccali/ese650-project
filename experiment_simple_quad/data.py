@@ -32,10 +32,13 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
                 x = np.concatenate((obs, np.array([u])))
                 traj.append(x)
             traj = np.stack(traj)
-            # TODO: add speed constraint
-            raise Exception('Unimplemented speed constraint ')
-            # if np.amax(traj[:, 2]) < env.max_speed - 0.001 and np.amin(traj[:, 2]) > -env.max_speed + 0.001:
-            #     valid = True
+            
+            # raise Exception('Unimplemented speed constraint ')
+            xvalid = np.amax(traj[:, 2]) < env.max_speed - 0.001 and np.amin(traj[:, 2]) > -env.max_speed + 0.001
+            yvalid = np.amax(traj[:, 3]) < env.max_speed - 0.001 and np.amin(traj[:, 3]) > -env.max_speed + 0.001
+            thvalid = np.amax(traj[:, 6]) < env.max_speed - 0.001 and np.amin(traj[:, 6]) > -env.max_speed + 0.001
+            if xvalid and yvalid and thvalid:
+                valid = True
         trajs.append(traj)
     trajs = np.stack(trajs)  # (trials, timesteps, 2)
     trajs = np.transpose(trajs, (1, 0, 2))  # (timesteps, trails, 2)

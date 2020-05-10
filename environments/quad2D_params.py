@@ -19,7 +19,7 @@ xf = np.zeros([states, 1])
 xf[0, 0] = 1.5 # xpos
 xf[1, 0] = 2 # ypos
 
-
+max_speed = 100
 
 
 # ddp parameters

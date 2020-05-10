@@ -32,6 +32,8 @@ class Quad2DEnv(gym.Env):
 
         self.observation_space = spaces.Box(self.state_limits * -1, self.state_limits)
         self.action_space = spaces.Box(-10000, 10000, (2,))  # all 4 motors can be actuated 0 to 1
+        
+        self.max_speed = quad2D_params.max_speed
 
         # initialize state to zero
         self.state = np.zeros((quad2D_params.states,))
