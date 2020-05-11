@@ -25,10 +25,13 @@ sys.path.append(EXPERIMENT_DIR)
 DPI = 100
 FORMAT = 'pdf'
 
+# TODO(Rebecca): put this with learned_params
+# _env_name = 'DDP-Pendulum-v0'
+_env_name = 'MyPendulum-v0'
 
 def get_args():
     """ Arguments to fetch a model. Must match existing trained models exactly."""
-    return learned_params.get_pendulum_args(EXPERIMENT_DIR, 'DDP-Pendulum-v0')
+    return learned_params.get_pendulum_args(EXPERIMENT_DIR, _env_name)
 
 def plot_learning(base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats, DPI):
     base_test_loss = base_ode_stats['test_loss']

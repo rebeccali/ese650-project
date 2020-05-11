@@ -10,7 +10,8 @@ from symplectic.utils import to_pickle, from_pickle
 import gym
 from environments.utils import construct_env
 
-_env_name = 'DDP-Pendulum-v0'
+# _env_name = 'DDP-Pendulum-v0'
+_env_name = 'MyPendulum-v0'
 def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
               verbose=False, u=0.0, env_name=_env_name):
 
@@ -42,7 +43,7 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
     return trajs, tspan, gym_settings
 
 
-def get_dataset(seed=0, samples=50, test_split=0.5, save_dir=None, us=[0], rad=False, **kwargs):
+def get_dataset(seed=0, samples=50, test_split=0.5, save_dir=None, us=[0], rad=False, env_name=_env_name, **kwargs):
     data = {}
 
     assert save_dir is not None

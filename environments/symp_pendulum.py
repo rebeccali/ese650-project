@@ -30,6 +30,11 @@ class PendulumEnv(gym.Env):
 
         self.seed()
 
+        self.training_mode = False
+
+    def set_training_mode(self):
+        self.training_mode = True
+
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
