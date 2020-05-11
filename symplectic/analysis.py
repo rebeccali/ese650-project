@@ -158,7 +158,6 @@ def simulate_control(device, symoden_ode_struct_model, args, render=False):
     # angle info for simulation
     init_angle = 3.14
     u0 = 0.0
-    # env = gym.make(args.env)
     env = construct_env(args.env)
     # record video
     env = gym.wrappers.Monitor(env, './videos/' + 'single-embed' + '/',
@@ -223,7 +222,7 @@ def simulate_models(base_ode_model, naive_ode_model, symoden_ode_model, symoden_
     base_ivp = integrate_model(base_ode_model, t_span, y0_u, device=device, **kwargs)
     symoden_ivp = integrate_model(symoden_ode_model, t_span, y0_u, device=device, **kwargs)
     symoden_struct_ivp = integrate_model(symoden_ode_struct_model, t_span, y0_u, device=device, **kwargs)
-    env = gym.make(args.env)
+    env = construct_env(args.env)
     env.reset()
     env.set_training_mode()
     env.state = np.array([init_angle, 0.0], dtype=np.float32)

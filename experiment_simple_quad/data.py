@@ -7,7 +7,7 @@
 import numpy as np
 from symplectic.utils import to_pickle, from_pickle
 import gym
-import environments
+from environments.utils import construct_env
 
 _env_name = 'Simple-Quad-v0'
 
@@ -17,7 +17,7 @@ def sample_gym(seed=0, timesteps=10, trials=50, min_angle=0.,
     gym_settings = locals()
     if verbose:
         print("Making a dataset of %s observations." % _env_name)
-    env = gym.make(env_name)
+    env = construct_env(env_name)
     env.seed(seed)
     env.set_training_mode()
 
