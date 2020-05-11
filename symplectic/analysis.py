@@ -160,8 +160,9 @@ def simulate_control(device, symoden_ode_struct_model, args, render=False):
     u0 = 0.0
     env = construct_env(args.env)
     # record video
-    env = gym.wrappers.Monitor(env, './videos/' + 'single-embed' + '/',
-                               force=True)  # , video_callable=lambda x: True, force=True
+    if render:
+        env = gym.wrappers.Monitor(env, './videos/' + 'single-embed' + '/',
+                                   force=True)  # , video_callable=lambda x: True, force=True
     env.reset()
     env.set_training_mode()
     env.env.state = np.array([init_angle, u0], dtype=np.float32)

@@ -16,13 +16,15 @@ def plot_control(t_eval, y_traj, args, DPI=100, FORMAT='pdf'):
     plt.title('$q$', fontsize=14)
     plt.xlabel('$t$', fontsize=14)
     plt.ylim([-1.1, 1.1])
-    plt.legend(fontsize=10)
+    do_legend()
+
     plt.subplot(1, 3, 2)
     plt.plot(t_eval.numpy(), 0 * np.ones_like(t_eval.numpy()), 'k-', linewidth=0.5)
     plt.plot(t_eval.numpy(), y_traj[:, 2], 'b', linewidth=2)
     plt.title('$\dot{q}$', fontsize=14)
     plt.xlabel('$t$', fontsize=14)
     plt.ylim([-4.1, 4.1])
+
     plt.subplot(1, 3, 3)
     plt.plot(t_eval.numpy(), 0 * np.ones_like(t_eval.numpy()), 'k-', linewidth=0.5)
     plt.plot(t_eval.numpy(), y_traj[:, 3], 'b', linewidth=2)
@@ -33,7 +35,8 @@ def plot_control(t_eval, y_traj, args, DPI=100, FORMAT='pdf'):
     fig.savefig('{}/fig-embed-ctrl.{}'.format(args.fig_dir, FORMAT))
 
 
-def plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp, DPI=100):
+def plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_model, t_linspace_true, true_ivp,
+                          DPI=100):
     # %% [markdown]
     # ## Energy variation along each trajectory
     # %%
@@ -43,10 +46,10 @@ def plot_energy_variation(base_ivp, symoden_ivp, symoden_struct_ivp, t_linspace_
     E_symoden = symoden_ivp.y.T[:, 2] ** 2 / 6 + 5 * (1 + symoden_ivp.y.T[:, 0])
     E_symoden_struct = symoden_struct_ivp.y.T[:, 2] ** 2 / 6 + 5 * (1 + symoden_struct_ivp.y.T[:, 0])
     plt.plot(t_linspace_true, E_true, 'k', label='Ground Truth')
-    plt.plot(t_linspace_model, E_base, 'r', label='Baseline')
-    plt.plot(t_linspace_model, E_symoden, 'g', label='SympODEN')
+    # plt.plot(t_linspace_model, E_base, 'r', label='Baseline')
+    # plt.plot(t_linspace_model, E_symoden, 'g', label='SympODE1N')
     plt.plot(t_linspace_model, E_symoden_struct, 'b', label='Structured SympODEN')
-    plt.legend(fontsize=10)
+    do_legend()
     plt.xlabel('Time')
     plt.ylabel('Energy')
     plt.title('Energy Variation along each trajectory')
@@ -71,7 +74,7 @@ def plot_learned_functions(symoden_ode_struct_model, device, DPI=100):
     plt.title("$g(q)$", pad=10, fontsize=14)
     plt.xlim(-5, 5)
     plt.ylim(0, 4)
-    plt.legend(fontsize=10)
+    do_legend()
     M_q_inv = symoden_ode_struct_model.M_net(cos_q_sin_q)
 
     plt.subplot(1, 3, 2)
@@ -83,7 +86,7 @@ def plot_learned_functions(symoden_ode_struct_model, device, DPI=100):
     plt.title("$M^{-1}(q)$", pad=10, fontsize=14)
     plt.xlim(-5, 5)
     plt.ylim(0, 4)
-    plt.legend(fontsize=10)
+    do_legend()
     V_q = symoden_ode_struct_model.V_net(cos_q_sin_q)
 
     plt.subplot(1, 3, 3)
@@ -94,7 +97,7 @@ def plot_learned_functions(symoden_ode_struct_model, device, DPI=100):
     plt.title("$V(q)$", pad=10, fontsize=14)
     plt.xlim(-5, 5)
     plt.ylim(-7, 22)
-    plt.legend(fontsize=10)
+    do_legend()
     plt.tight_layout()
     # fig.savefig('{}/fig-single-embed.{}'.format(args.fig_dir, FORMAT))
 
@@ -105,18 +108,18 @@ def plot_sin_cos_sanity_check(base_ivp, naive_ivp, symoden_ivp, symoden_struct_i
     base_1 = base_ivp.y[0, :] ** 2 + base_ivp.y[1, :] ** 2
     symoden_1 = symoden_ivp.y[0, :] ** 2 + symoden_ivp.y[1, :] ** 2
     symoden_struct_1 = symoden_struct_ivp.y[0, :] ** 2 + symoden_struct_ivp.y[1, :] ** 2
-    plt.plot(t_linspace_model, naive_1, 'y', label='Naive Baseline')
-    plt.plot(t_linspace_model, base_1, 'r', label='Geometric Baseline')
-    plt.plot(t_linspace_model, symoden_1, 'g', label='unstructured SymODEN')
-    plt.plot(t_linspace_model, symoden_struct_1, 'b', label='SymODEN')
+    plt.plot(t_linspace_model, naive_1, 'y', label='Naive Model')
+    # plt.plot(t_linspace_model, base_1, 'r', label='Geometric Baseline')
+    # plt.plot(t_linspace_model, symoden_1, 'g', label='unstructured SymODEN')
+    plt.plot(t_linspace_model, symoden_struct_1, 'b', label='Structured SympODEN Model')
     plt.title(r'Sanity check of $\sin^2 q + \cos^2 q$')
-    plt.legend(fontsize=10)
+    do_legend()
     # %%
-    plt.plot(t_linspace_model, base_1, 'r', label='Geometric Baseline')
-    plt.plot(t_linspace_model, symoden_1, 'g', label='unstructured SymODEN')
-    plt.plot(t_linspace_model, symoden_struct_1, 'b', label='SymODEN')
+    # plt.plot(t_linspace_model, base_1, 'r', label='Geometric Baseline')
+    # plt.plot(t_linspace_model, symoden_1, 'g', label='unstructured SymODEN')
+    plt.plot(t_linspace_model, symoden_struct_1, 'b', label='Structured SympODEN Model')
     plt.title(r'Sanity check of $\sin^2 q + \cos^2 q$')
-    plt.legend(fontsize=10)
+    do_legend()
 
 
 def plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp, true_ivp_y, DPI=100):
@@ -128,6 +131,7 @@ def plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp,
     # Quick sanity check
     assert base_ivp.y.shape == true_ivp_y.shape, 'model IVP shape does not match true ivp - is this the right environment?'
     fig = plt.figure(figsize=(5, 5), dpi=DPI)
+
     # plt.subplots()
 
     def plot_ivp(model_ivp, name):
@@ -137,11 +141,10 @@ def plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp,
         model_q = np.arctan2(model_sin_q, model_cos_q)
         plt.plot(model_q, model_qdot, '--', label=name)
 
-    plot_ivp(base_ivp, 'Baseline Model')
+    # plot_ivp(base_ivp, 'Baseline Model')
     plot_ivp(naive_ivp, 'Naive Model')
-    plot_ivp(symoden_ivp, 'SympODEN Model')
+    # plot_ivp(symoden_ivp, 'SympODEN Model')
     plot_ivp(symoden_struct_ivp, 'Structured SympODEN Model')
-
 
     true_cos_q = true_ivp_y[0, :]
     true_sin_q = true_ivp_y[1, :]
@@ -155,4 +158,41 @@ def plot_model_vs_true_ivp(base_ivp, naive_ivp, symoden_ivp, symoden_struct_ivp,
     plt.title(r'Models vs True Phase Trajectory')
     plt.xlabel('$q$')
     plt.ylabel('$\dot{q}$')
-    plt.legend(fontsize=10)
+    do_legend()
+
+
+def do_legend(upper=True):
+    # Legend to right side
+    # plt.legend(fontsize=10, loc='center left', bbox_to_anchor=(1, 0.5))
+    # Upper right corner
+    if upper:
+        plt.legend(loc='upper right')
+    else:
+        # on lower right
+        plt.legend(loc='lower right')
+    # on top
+    # plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
+    #           ncol=1, fancybox=True, shadow=True)
+    plt.tight_layout()
+
+
+def plot_learning(base_ode_stats, naive_ode_stats, symoden_ode_stats, symoden_ode_struct_stats, DPI):
+    base_test_loss = base_ode_stats['test_loss']
+    naive_test_loss = naive_ode_stats['test_loss']
+    unstruct_test_loss = symoden_ode_stats['test_loss']
+    struct_test_loss = symoden_ode_struct_stats['test_loss']
+    # print(base_test_loss)
+    # print(len(base_test_loss), len(naive_test_loss), len(unstruct_test_loss), len(struct_test_loss))
+    #
+    # print(len(struct_test_loss),len(symoden_ode_struct_stats['forward_time']))
+
+    fig = plt.figure(figsize=[5, 5], dpi=DPI)
+    # plt.plot(range(len(base_test_loss)),base_test_loss,label='Baseline')
+    plt.plot(range(len(naive_test_loss)), naive_test_loss, label='Naive Model')
+    # plt.plot(range(len(unstruct_test_loss)),unstruct_test_loss,label='Untructured sympODEN')
+    plt.plot(range(len(struct_test_loss)), struct_test_loss, label='Structured SympODEN Model')
+    # plt.plot(range(len(symoden_ode_struct_stats['forward_time'])),symoden_ode_struct_stats['train_loss'])
+    plt.xlabel('Training Steps')
+    plt.ylabel('$||\mathbf{X} - \mathbf{\hat{X}}||_2$')
+    plt.title('Test Loss vs Training step')
+    do_legend(upper=True)
