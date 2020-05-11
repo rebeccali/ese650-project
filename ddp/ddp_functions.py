@@ -44,16 +44,17 @@ def state_action(L, Lx, Lu, Lxx, Luu, Lxu, V, Vx, Vxx, phi, B):
     return Q, Qx, Qu, Qxx, Quu, Qxu
 
 
-def ddp(env, x, u):
+def ddp(env, x, u, opt_time):
     """ takes in the current state and control trajectories and outputs optimal control trajectory """
 
     states = env.states
     controllers = env.num_controllers
 
-    # these come from teh params file of the environment
-    timesteps = env.timesteps
-    dt = env.dt
+    # these come from the params file of the environment
+    # timesteps = env.timesteps
+    timesteps = opt_time
 
+    dt = env.dt
 
     xf = np.squeeze(env.goal)
 
@@ -138,13 +139,13 @@ def ddp(env, x, u):
     return u_opt
 
 
-def apply_control(env, u_opt):
+def apply_control(env, u_opt, timesteps):
     """ evaluates the controlled envtem trajectory """
 
     states = env.states
 
     # if not MPC:
-    timesteps = env.timesteps
+    # timesteps = env.timesteps
 
     x_new = np.zeros([states, timesteps])
     x_new[:, 0] = env.state
@@ -172,7 +173,7 @@ def apply_control(env, u_opt):
     return x_new, -cost
 
 
-def run_ddp(env, num_iter):
+def run_ddp(env, num_iter, timesteps):
     """Run DDP on environment for num_iter timesteps
         Returns:
             costvec(nparray): costs at each timestep
@@ -184,7 +185,7 @@ def run_ddp(env, num_iter):
     u = np.zeros([env.num_controllers, env.timesteps - 1])
     costvec = []
     for i in range(num_iter):
-        u_opt = ddp(env, x, u)
+        u_opt = ddp(env, x, u, env.timesteps)
         x_new, cost = apply_control(env, u_opt)
 
         # update state and control trajectories
@@ -203,3 +204,82 @@ def run_ddp(env, num_iter):
     u = np.asarray(u)
     costvec = np.asarray(costvec)
     return costvec, u, x, xf
+
+
+def run_mpc_ddp(env, num_iter, opt_time):
+    """Run MPC DDP on environment for num_iter timesteps
+        Returns:
+            costvec(nparray): costs at each timestep
+            u(nparray): the control trajectory
+            x(nparray): the state trajectory
+            xf(nparray): the system goal
+    """
+    ################################ MPC stufff ####################################################
+
+    current_time = 0
+    index = 0
+    prediction_time_horizon = int(env.timesteps * opt_time)
+    total_time = int(env.timesteps * env.dt)
+
+
+    costvec = []
+    x = []
+    x.append(env.state) # set initial state
+    u = []
+
+    x1 = env.state
+
+    while current_time <  (total_time - env.dt):
+
+        x_ddp = np.zeros([env.states, int(prediction_time_horizon)])
+        x_ddp[:, 0] = x1
+        u_ddp = np.zeros([env.num_controllers, int(prediction_time_horizon)])
+
+        for i in range(num_iter):
+            u_opt = ddp(env, x_ddp, u_ddp, prediction_time_horizon)
+
+            x_new, cost = apply_control(env, u_opt, prediction_time_horizon)
+
+            # update state and control trajectories
+            x_ddp = x_new
+            u_ddp = u_opt
+
+            env.reset(reset_state=x1)
+
+        # apply first control from the sequence and step one timestep
+        x1, c1 = env.step(u_ddp[:, 0])
+
+        x.append(x1)
+        u.append(u_ddp[:, 0])
+        costvec.append(-c1)
+
+        env.reset(reset_state=x1)
+
+        current_time += env.dt
+        index += 1
+
+        print('MPC Iteration: ', index, "Cost: ", -c1, 'curr time: ', current_time)
+
+    xf = env.goal
+    x = np.asarray(x)
+    u = np.asarray(u)
+    costvec = np.asarray(costvec)
+
+    return costvec, u, x, xf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

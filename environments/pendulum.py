@@ -189,12 +189,12 @@ class PendulumEnv(gym.Env):
         plt.figure(1)
         plt.subplot(211)
         plt.plot(x[0, :])
-        plt.plot(xf[0] * np.ones([self.timesteps, ]), 'r')
+        plt.plot(xf[0] * np.ones([x.shape[1], ]), 'r')
         plt.title('theta')
 
         plt.subplot(212)
         plt.plot(x[1, :])
-        plt.plot(xf[1] * np.ones([self.timesteps, ]), 'r')
+        plt.plot(xf[1] * np.ones([x.shape[1], ]), 'r')
         plt.title('thetadot')
 
         plt.figure(2)
