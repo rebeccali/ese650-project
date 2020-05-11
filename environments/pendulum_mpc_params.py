@@ -21,14 +21,9 @@ dt = 0.01  # discretization timestep
 #
 # timesteps = int(total_timesteps/10)  # total timesteps we optimize over at each pass of MPC
 
-
-
 # MPC prediction time horizon for MPC (split into 10 intervals)
 timesteps = int(total_time / dt)
-
 # timesteps = int(total_timesteps/10)  # total timesteps we optimize over at each pass of MPC
-
-
 # goal state
 xf = np.zeros([states, 1])
 xf[0, 0] = np.pi
